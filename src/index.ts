@@ -5,18 +5,13 @@ import { definePlugin } from "@common-grants/sdk/extensions";
 // Value Schemas
 // =============================================================================
 
-export const ProgramAreaValueSchema = z.object({
-  code: z.string(),
-  name: z.string(),
-});
-
 export const AssistanceListingValueSchema = z.object({
   identifier: z.string().nullish(),
   programTitle: z.string().nullish(),
 });
 
 export const AgencyValueSchema = z.object({
-  code: z.string(),
+  code: z.string().nullish(),
   name: z.string().nullish(),
   parentName: z.string().nullish(),
   parentCode: z.string().nullish(),
@@ -26,8 +21,8 @@ export const AttachmentValueSchema = z.object({
   downloadUrl: z.string().nullish(),
   name: z.string(),
   description: z.string().nullish(),
-  sizeInBytes: z.number().int(),
-  mimeType: z.string(),
+  sizeInBytes: z.number().int().nullish(),
+  mimeType: z.string().nullish(),
   createdAt: z.string().datetime(),
   lastModifiedAt: z.string().datetime(),
 });

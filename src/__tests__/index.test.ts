@@ -187,19 +187,51 @@ describe("Grants.gov plugin", () => {
   // =============================================================================
 
   describe("invalid data", () => {
-    it("rejects an agency with a missing required field", () => {
+    it("rejects an attachment missing required fields", () => {
+      const result = schema.safeParse({
+        ...baseOpportunity,
+        customFields: {
+          attachments: {
+            name: "attachments",
+            fieldType: "array",
+            value: [
+              {
+                downloadUrl: "https://example.com/nofo.pdf",
+                description: "A document",
+              },
+            ],
+          },
+        },
+      });
+
+      expect(result.success).toBe(false);
+      const paths = result.error?.issues.map(i => i.path.join("."));
+      expect(paths).toContain("customFields.attachments.value.0.name");
+      expect(paths).toContain("customFields.attachments.value.0.createdAt");
+      expect(paths).toContain("customFields.attachments.value.0.lastModifiedAt");
+      result.error?.issues.forEach(issue => {
+        expect(issue.code).toBe("invalid_type");
+        expect(issue.message).toBe("Required");
+      });
+    });
+
+    it("rejects an agency with the wrong type for a required field", () => {
       const result = schema.safeParse({
         ...baseOpportunity,
         customFields: {
           agency: {
             name: "agency",
             fieldType: "object",
-            value: { name: "HHS" }, // missing required 'code'
+            value: { code: 123, name: "HHS" }, // code should be string
           },
         },
       });
 
       expect(result.success).toBe(false);
+      const issue = result.error?.issues[0];
+      expect(issue?.code).toBe("invalid_type");
+      expect(issue?.path).toEqual(["customFields", "agency", "value", "code"]);
+      expect(issue?.message).toBe("Expected string, received number");
     });
 
     it("rejects an attachment with an invalid datetime", () => {
@@ -223,6 +255,10 @@ describe("Grants.gov plugin", () => {
       });
 
       expect(result.success).toBe(false);
+      const issue = result.error?.issues[0];
+      expect(issue?.code).toBe("invalid_string");
+      expect(issue?.path).toEqual(["customFields", "attachments", "value", 0, "createdAt"]);
+      expect(issue?.message).toBe("Invalid datetime");
     });
 
     it("rejects a cost sharing value with wrong type", () => {
@@ -238,6 +274,10 @@ describe("Grants.gov plugin", () => {
       });
 
       expect(result.success).toBe(false);
+      const issue = result.error?.issues[0];
+      expect(issue?.code).toBe("invalid_type");
+      expect(issue?.path).toEqual(["customFields", "costSharing", "value", "isRequired"]);
+      expect(issue?.message).toBe("Expected boolean, received string");
     });
   });
 
@@ -263,7 +303,7 @@ describe("Grants.gov plugin", () => {
       expect((result.customFields as Record<string, unknown>)["unknownField"]).toBeDefined();
     });
 
-    it("passes through extra properties within custom field values", () => {
+    it("strips extra properties from custom field values", () => {
       const result = schema.parse({
         ...baseOpportunity,
         customFields: {
@@ -275,13 +315,14 @@ describe("Grants.gov plugin", () => {
               name: "HHS",
               parentName: null,
               parentCode: null,
-              extraProp: "should pass through",
+              extraProp: "should be stripped",
             },
           },
         },
       });
 
       expect(result.customFields?.agency?.value.code).toBe("HHS");
+      expect(result.customFields?.agency?.value).not.toHaveProperty("extraProp");
     });
   });
 });
