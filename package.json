@@ -10,7 +10,16 @@
     "src"
   ],
   "scripts": {
-    "build": "tsc"
+    "build": "tsc",
+    "lint": "eslint . --fix",
+    "check:lint": "eslint .",
+    "format": "prettier --write .",
+    "check:format": "prettier --check .",
+    "check:types": "tsc --noEmit",
+    "checks": "pnpm run check:lint && pnpm run check:format && pnpm run check:types",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "ci": "pnpm run checks && pnpm run build && pnpm run test"
   },
   "exports": {
     ".": {
@@ -25,7 +34,15 @@
   },
   "devDependencies": {
     "@common-grants/sdk": "^0.4.0",
+    "@eslint/js": "^10.0.1",
+    "@vitest/coverage-v8": "^4.1.2",
+    "eslint": "^10.2.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.5",
+    "prettier": "^3.8.1",
     "typescript": "^5.0.0",
+    "typescript-eslint": "^8.58.0",
+    "vitest": "^4.1.2",
     "zod": "^3.25.0"
   }
 }

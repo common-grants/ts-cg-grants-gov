@@ -91,10 +91,7 @@ const localPlugin = definePlugin({
 } as const);
 
 // Merge the Grants.gov extensions with your local extensions
-const merged = mergeExtensions([
-  grantsGovPlugin.extensions,
-  localPlugin.extensions,
-]);
+const merged = mergeExtensions([grantsGovPlugin.extensions, localPlugin.extensions]);
 const combinedPlugin = definePlugin({ extensions: merged });
 
 // Use the combined schema -- both Grants.gov and local fields are typed
