@@ -1,0 +1,55 @@
+name: "CD - Publish to npm"
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Git tag to publish (e.g., v0.1.0)"
+        required: true
+        type: string
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment:
+      name: npm
+      url: https://www.npmjs.com/package/@common-grants/cg-grants-gov
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Determine ref
+        id: config
+        run: |
+          if [ "${{ github.event_name }}" = "release" ]; then
+            echo "ref=${{ github.event.release.tag_name }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "ref=${{ github.event.inputs.tag }}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ steps.config.outputs.ref }}
+
+      - uses: pnpm/action-setup@v5
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+          cache: "pnpm"
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm run ci
+
+      - name: Publish
+        env:
+          # TODO: Replace with trusted publishers after initial release
+          # https://github.com/common-grants/ts-cg-grants-gov/issues/4
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: pnpm publish --provenance --access public --no-git-checks
