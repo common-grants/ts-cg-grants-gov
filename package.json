@@ -20,8 +20,7 @@
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "ci": "pnpm run checks && pnpm run build && pnpm run test",
-    "example:parse": "pnpm dlx tsx examples/parse-opportunity.ts",
-    "example:combine": "pnpm dlx tsx examples/combine-plugins.ts"
+    "example:parse": "pnpm dlx tsx examples/parse-opportunity.ts"
   },
   "exports": {
     ".": {

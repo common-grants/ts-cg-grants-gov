@@ -11,9 +11,6 @@ pnpm install
 
 # Parse a Grants.gov opportunity with typed custom fields
 pnpm example:parse
-
-# Combine the Grants.gov plugin with a local plugin
-pnpm example:combine
 ```
 
 ## Examples
@@ -52,28 +49,6 @@ Contact: Jane Doe <jane.doe@hhs.gov>
 === Example Complete ===
 ```
 
-### Combine Plugins
+### Combining with other plugins
 
-Demonstrates merging the Grants.gov plugin with a local plugin using `mergeExtensions()` and `definePlugin()`, then accessing fields from both plugins on a single schema.
-
-```bash
-pnpm example:combine
-```
-
-**Expected output:**
-
-```
-=== Combine Plugins ===
-
-Title: STEM Education Grant Program
-
-Grants.gov fields:
-  Agency:    Department of Health and Human Services
-  Federal #: HHS-2025-001
-
-Local fields:
-  Notes:    High priority — aligns with Q3 strategy
-  Priority: 1
-
-=== Example Complete ===
-```
+To learn how to merge this plugin with your own custom fields using `mergeExtensions()` and `definePlugin()`, see the [Combining Plugins](https://github.com/HHS/simpler-grants-protocol/blob/main/lib/ts-sdk/src/extensions/README.md#combining-plugins) section of the TypeScript SDK extensions guide.
