@@ -52,7 +52,7 @@ PR titles must follow the [Conventional Commits](https://www.conventionalcommits
 Scoped prefixes like `fix(config):` and `feat(schema):` are also supported.
 
 > [!NOTE]
-> While pre-v1.0, breaking changes (`feat!:`, `fix!:`) bump the **minor** version instead of major. Breaking changes are still called out in the changelog under a "BREAKING CHANGES" section.
+> While pre-v1.0, breaking changes (`feat!:`, `fix!:`) bump the **minor** version instead of major. Breaking changes are still called out in the changelog under a "BREAKING CHANGES" section. When you're ready to release v1.0, remove `"bump-minor-pre-major": true` from `release-please-config.json` and breaking changes will start bumping the major version.
 
 #### 2. Release PR is created automatically
 
