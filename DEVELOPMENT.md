@@ -31,3 +31,92 @@ Guide for maintainers and contributors working on this package.
 | `pnpm test`          | Run tests with Vitest                              |
 | `pnpm test:coverage` | Run tests with coverage report                     |
 | `pnpm ci`            | Run checks, build, and tests (mirrors CI pipeline) |
+
+## Releasing
+
+This package uses [release-please](https://github.com/googleapis/release-please) for automated versioning and changelog generation, with a separate workflow for publishing to npm.
+
+### How it works
+
+#### 1. Use conventional commits
+
+PR titles must follow the [Conventional Commits](https://www.conventionalcommits.org/) format. The CI `lint-pr-title` check enforces this on every PR.
+
+| Prefix                       | Version bump                         | Example                                    |
+| ---------------------------- | ------------------------------------ | ------------------------------------------ |
+| `fix:`, `docs:`, `refactor:` | Patch (0.1.0 → 0.1.1)                | `fix: Handle null agency code`             |
+| `feat:`                      | Minor (0.1.0 → 0.2.0)                | `feat: Add attachment schemas [Issue #12]` |
+| `feat!:` or `fix!:`          | Minor while pre-v1.0 (0.1.0 → 0.2.0) | `feat!: Rename agency fields [Issue #15]`  |
+| `chore:`, `ci:`, `test:`     | No bump                              | `chore: Update issue templates`            |
+
+Scoped prefixes like `fix(config):` and `feat(schema):` are also supported.
+
+> [!NOTE]
+> While pre-v1.0, breaking changes (`feat!:`, `fix!:`) bump the **minor** version instead of major. Breaking changes are still called out in the changelog under a "BREAKING CHANGES" section.
+
+#### 2. Release PR is created automatically
+
+When changes that trigger a version bump land on `main`, release-please creates (or updates) a release PR. This PR:
+
+- Bumps `version` in `package.json`
+- Updates `CHANGELOG.md` with all included changes
+- Accumulates changes across multiple merged PRs — merge the release PR only when you're ready to cut a release
+
+The release PR is the primary way to preview what will be in the next release.
+
+#### 3. Merge the release PR to publish
+
+When you merge the release PR:
+
+1. Release-please creates a git tag (`vX.Y.Z`) and a GitHub Release
+2. The **CD - Publish to npm** workflow automatically triggers and publishes the package
+
+### Retrying a failed publish
+
+If the publish step fails after a release is created:
+
+1. Go to **Actions → CD - Publish to npm**
+2. Click **Run workflow**
+3. Enter the git tag (e.g., `v0.2.0`)
+4. Click **Run workflow**
+
+If the failure requires a code fix (not just a CI retry):
+
+1. **Revert the release PR** — create a revert PR that undoes the version bump and changelog changes from the failed release. This ensures `main` reflects the unpublished state.
+
+   ```bash
+   # Find the merge commit of the release PR
+   git log --oneline main
+
+   # Create a revert branch
+   git checkout -b revert-release-v0.2.0 main
+   git revert --no-edit <merge-commit-sha>
+   git push -u origin revert-release-v0.2.0
+   ```
+
+2. **Merge the revert PR** to `main`.
+3. **Delete the unpublished GitHub Release and tag** — go to the repo's Releases page, delete the `v0.2.0` release, then delete the tag:
+
+   ```bash
+   git push origin --delete v0.2.0
+   ```
+
+4. **Merge your fix PR** to `main`.
+5. **Release-please will open a new release PR** for `v0.2.0` (same version, since the revert undid the previous bump) that includes both the original changes and your fix.
+6. **Merge the new release PR** to publish.
+
+### Previewing a release
+
+The release PR is the primary way to preview a release — it shows the exact changelog, version bump, and all included commits.
+
+### Bundling multiple changes
+
+The release PR accumulates all version-bumping commits since the last release. Keep merging PRs to `main` — the release PR updates automatically. Merge the release PR only when you're ready to cut a release.
+
+### Repository setup
+
+These settings are required for the release workflow to function correctly:
+
+- **Squash merge**: Enable squash merging as the default merge strategy with "Default to pull request title" so PR titles become the conventional commit messages on `main`
+- **NPM_TOKEN**: Add an npm [granular access token](https://docs.npmjs.com/creating-and-viewing-access-tokens) as a repository secret named `NPM_TOKEN`, scoped to the `@common-grants` org with publish permissions
+- **GitHub Environment** (optional): Create an environment called `npm` with required reviewers to add an approval gate before publishing
