@@ -23,7 +23,8 @@
   "types": "./dist/index.d.ts",
   "files": [
     "dist",
-    "src"
+    "!dist/**/*.test.*",
+    "!dist/**/*.spec.*"
   ],
   "scripts": {
     "build": "tsc",
