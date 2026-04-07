@@ -1,8 +1,12 @@
 name: "CD - Publish to npm"
 
 on:
-  release:
-    types: [published]
+  workflow_call:
+    inputs:
+      tag:
+        description: "Git tag to publish (e.g., v0.1.0)"
+        required: true
+        type: string
   workflow_dispatch:
     inputs:
       tag:
@@ -20,18 +24,9 @@ jobs:
       contents: read
       id-token: write
     steps:
-      - name: Determine ref
-        id: config
-        run: |
-          if [ "${{ github.event_name }}" = "release" ]; then
-            echo "ref=${{ github.event.release.tag_name }}" >> "$GITHUB_OUTPUT"
-          else
-            echo "ref=${{ github.event.inputs.tag }}" >> "$GITHUB_OUTPUT"
-          fi
-
       - uses: actions/checkout@v6
         with:
-          ref: ${{ steps.config.outputs.ref }}
+          ref: ${{ inputs.tag }}
 
       - uses: pnpm/action-setup@v5
         with:
