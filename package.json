@@ -3,6 +3,22 @@
   "description": "A CommonGrants adapter library for the Simpler.Grants.gov API",
   "version": "0.0.0",
   "license": "CC0-1.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/common-grants/ts-cg-grants-gov.git"
+  },
+  "homepage": "https://github.com/common-grants/ts-cg-grants-gov#readme",
+  "bugs": {
+    "url": "https://github.com/common-grants/ts-cg-grants-gov/issues"
+  },
+  "keywords": [
+    "common-grants",
+    "grants-gov",
+    "plugin",
+    "typescript",
+    "grants",
+    "opportunities"
+  ],
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "files": [
