@@ -4,6 +4,16 @@ on:
   pull_request:
 
 jobs:
+  # Lint the PR title to ensure it follows conventional commit messages
+  # release-please relies on conventional commit messages to determine the version bump
+  lint-pr-title:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: amannn/action-semantic-pull-request@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   ci:
     runs-on: ubuntu-latest
     strategy:
