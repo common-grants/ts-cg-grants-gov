@@ -47,6 +47,23 @@ export const CostSharingValueSchema = z.object({
 // Plugin
 // =============================================================================
 
+/**
+ * CommonGrants plugin for the Simpler.Grants.gov API.
+ *
+ * Extends the `Opportunity` schema with Grants.gov-specific custom fields
+ * such as agency, assistance listings, attachments, and contact info.
+ *
+ * @example
+ * ```ts
+ * import { Client, Auth } from "@common-grants/sdk/client";
+ * import grantsGovPlugin from "@common-grants/cg-grants-gov";
+ *
+ * const client = new Client({ baseUrl: "https://api.simpler.grants.gov", auth: Auth.apiKey("...") });
+ * const schema = grantsGovPlugin.schemas.Opportunity;
+ * const opp = await client.opportunities.get(id, { schema });
+ * console.log(opp.customFields?.agency?.value.name);
+ * ```
+ */
 const plugin = definePlugin({
   extensions: {
     Opportunity: {
