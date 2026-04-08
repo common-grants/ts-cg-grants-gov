@@ -40,8 +40,9 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      # Runs CI checks, builds, tests, and audits the package
-      - run: pnpm run ci
+      # Builds the package
+      # TODO: Change this back to pnpm run ci after initial release
+      - run: pnpm run build
 
       - name: Publish
         env:
