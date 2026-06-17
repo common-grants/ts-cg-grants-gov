@@ -51,8 +51,7 @@ export const CostSharingValueSchema = z.object({
 const customFields = {
   legacySerialId: {
     fieldType: "integer",
-    description:
-      "An integer ID for the opportunity, needed for compatibility with legacy systems",
+    description: "An integer ID for the opportunity, needed for compatibility with legacy systems",
   },
   federalOpportunityNumber: {
     fieldType: "string",
@@ -414,15 +413,15 @@ function fromCommon(common: any): TransformResult<GrantsGovOpportunity> {
   const closeDateEvent = common.keyDates?.closeDate;
   const postDate =
     postDateEvent?.eventType === "singleDate"
-      ? (postDateEvent.date instanceof Date
-          ? postDateEvent.date.toISOString().slice(0, 10)
-          : String(postDateEvent.date))
+      ? postDateEvent.date instanceof Date
+        ? postDateEvent.date.toISOString().slice(0, 10)
+        : String(postDateEvent.date)
       : null;
   const closeDate =
     closeDateEvent?.eventType === "singleDate"
-      ? (closeDateEvent.date instanceof Date
-          ? closeDateEvent.date.toISOString().slice(0, 10)
-          : String(closeDateEvent.date))
+      ? closeDateEvent.date instanceof Date
+        ? closeDateEvent.date.toISOString().slice(0, 10)
+        : String(closeDateEvent.date)
       : null;
 
   // Map applicant types back to grants.gov values
@@ -444,9 +443,7 @@ function fromCommon(common: any): TransformResult<GrantsGovOpportunity> {
 
   // Reconstruct summary from common standard fields and custom fields
   const createdAtStr =
-    common.createdAt instanceof Date
-      ? common.createdAt.toISOString()
-      : String(common.createdAt);
+    common.createdAt instanceof Date ? common.createdAt.toISOString() : String(common.createdAt);
   const updatedAtStr =
     common.lastModifiedAt instanceof Date
       ? common.lastModifiedAt.toISOString()

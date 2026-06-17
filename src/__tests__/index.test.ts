@@ -389,7 +389,10 @@ describe("Grants.gov plugin", () => {
         const { result, errors } = toCommon(baseGrantsGovOpportunity);
 
         expect(errors).toHaveLength(0);
-        expect(result.funding?.totalAmountAvailable).toEqual({ amount: "5000000", currency: "USD" });
+        expect(result.funding?.totalAmountAvailable).toEqual({
+          amount: "5000000",
+          currency: "USD",
+        });
         expect(result.funding?.minAwardAmount).toEqual({ amount: "50000", currency: "USD" });
         expect(result.funding?.maxAwardAmount).toEqual({ amount: "500000", currency: "USD" });
         expect(result.funding?.estimatedAwardCount).toBe(10);
@@ -415,7 +418,10 @@ describe("Grants.gov plugin", () => {
       it("maps unknown applicant types to 'custom' with customValue", () => {
         const { result } = toCommon({
           ...baseGrantsGovOpportunity,
-          summary: { ...baseGrantsGovOpportunity.summary, applicant_types: ["public_and_indian_housing_authorities"] },
+          summary: {
+            ...baseGrantsGovOpportunity.summary,
+            applicant_types: ["public_and_indian_housing_authorities"],
+          },
         });
 
         expect(result.acceptedApplicantTypes?.[0].value).toBe("custom");
@@ -516,7 +522,10 @@ describe("Grants.gov plugin", () => {
         ] as const;
 
         for (const { common: statusValue, expected } of statuses) {
-          const { result } = fromCommon({ ...schema.parse(baseOpportunity), status: { value: statusValue } });
+          const { result } = fromCommon({
+            ...schema.parse(baseOpportunity),
+            status: { value: statusValue },
+          });
           expect(result.opportunity_status).toBe(expected);
         }
       });
@@ -526,7 +535,9 @@ describe("Grants.gov plugin", () => {
         const { result: source } = fromCommon(common);
 
         expect(source.summary?.applicant_types).toContain("state_governments");
-        expect(source.summary?.applicant_types).toContain("nonprofits_non_higher_education_with_501c3");
+        expect(source.summary?.applicant_types).toContain(
+          "nonprofits_non_higher_education_with_501c3"
+        );
       });
 
       it("maps customFields.agency back to agency origin fields", () => {
@@ -617,7 +628,8 @@ describe("Grants.gov plugin", () => {
           { assistance_listing_number: "93.456", program_title: "Youth Development" },
         ],
         summary: {
-          summary_description: "A grant program focused on STEM education in underserved communities",
+          summary_description:
+            "A grant program focused on STEM education in underserved communities",
           is_cost_sharing: true,
           is_forecast: false,
           close_date: "2025-06-01",
@@ -671,8 +683,12 @@ describe("Grants.gov plugin", () => {
         expect(roundTripped.category).toBe(fullSource.category);
         expect(roundTripped.opportunity_status).toBe("posted"); // posted → open → posted
         // UTCDateTimeSchema normalizes datetime strings through a Date, so compare via Date
-        expect(new Date(roundTripped.created_at).getTime()).toBe(new Date(fullSource.created_at).getTime());
-        expect(new Date(roundTripped.updated_at).getTime()).toBe(new Date(fullSource.updated_at).getTime());
+        expect(new Date(roundTripped.created_at).getTime()).toBe(
+          new Date(fullSource.created_at).getTime()
+        );
+        expect(new Date(roundTripped.updated_at).getTime()).toBe(
+          new Date(fullSource.updated_at).getTime()
+        );
       });
 
       it("preserves all mappable summary fields", () => {
