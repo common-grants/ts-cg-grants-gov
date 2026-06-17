@@ -11,7 +11,7 @@
 
 import plugin from "../src/index";
 
-const schema = plugin.schemas.Opportunity;
+const schema = plugin.schemas.Opportunity.commonSchema;
 
 // Simulated API response from Simpler.Grants.gov
 const apiResponse = {
