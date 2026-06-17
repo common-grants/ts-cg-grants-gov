@@ -19,6 +19,7 @@
     "grants",
     "opportunities"
   ],
+  "packageManager": "pnpm@10.34.3",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "files": [
