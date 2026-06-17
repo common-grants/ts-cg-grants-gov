@@ -55,7 +55,7 @@
     }
   },
   "devDependencies": {
-    "@common-grants/sdk": "github:HHS/simpler-grants-protocol#HOLD-transforms&path:lib/ts-sdk",
+    "@common-grants/sdk": "github:HHS/simpler-grants-protocol#141864436e6219046dd1cd5157ec4b1baeb862ed&path:lib/ts-sdk",
     "@eslint/js": "^10.0.1",
     "@vitest/coverage-v8": "^4.1.2",
     "eslint": "^10.2.0",
