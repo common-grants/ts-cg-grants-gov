@@ -623,6 +623,7 @@ describe("Grants.gov plugin", () => {
         top_level_agency_name: "HHS Parent Agency",
         top_level_agency_code: "HHS-TOP",
         category: "D",
+        opportunity_status: "posted" as const,
         opportunity_assistance_listings: [
           { assistance_listing_number: "93.123", program_title: "STEM Education" },
           { assistance_listing_number: "93.456", program_title: "Youth Development" },
