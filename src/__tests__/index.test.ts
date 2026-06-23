@@ -641,21 +641,21 @@ describe("Grants.gov plugin", () => {
           award_ceiling: 500000,
           additional_info_url: "https://example.com/info",
           additional_info_url_description: "More details about the program",
-          forecasted_post_date: "2024-12-01", // NOT preserved — not captured in CommonGrants
-          forecasted_close_date: "2025-05-15", // NOT preserved — not captured in CommonGrants
+          forecasted_post_date: "2024-12-01",
+          forecasted_close_date: "2025-05-15",
           fiscal_year: 2025,
           agency_contact_description: "Contact the program officer for questions",
           agency_email_address: "grants@hhs.gov",
-          agency_email_address_description: "Primary contact email", // NOT preserved — not captured in contactInfo
-          funding_instruments: ["grant", "cooperative_agreement"], // NOT preserved — not mapped to CommonGrants
-          funding_categories: ["health", "education"], // NOT preserved — not mapped to CommonGrants
+          agency_email_address_description: "Primary contact email",
+          funding_instruments: ["grant", "cooperative_agreement"],
+          funding_categories: ["health", "education"],
           applicant_types: ["state_governments", "nonprofits_non_higher_education_with_501c3"],
           created_at: "2025-01-01T00:00:00Z",
           updated_at: "2025-01-15T00:00:00Z",
         },
         attachments: [
           {
-            opportunity_attachment_id: "a1b2c3d4-e5f6-7890-abcd-ef1234567890", // NOT preserved — set to null
+            opportunity_attachment_id: "a1b2c3d4-e5f6-7890-abcd-ef1234567890", // NOT preserved — set to null in round-trip
             mime_type: "application/pdf",
             file_name: "NOFO.pdf",
             file_description: "Notice of Funding Opportunity",
@@ -713,6 +713,11 @@ describe("Grants.gov plugin", () => {
         expect(s.fiscal_year).toBe(orig.fiscal_year);
         expect(s.agency_contact_description).toBe(orig.agency_contact_description);
         expect(s.agency_email_address).toBe(orig.agency_email_address);
+        expect(s.agency_email_address_description).toBe(orig.agency_email_address_description);
+        expect(s.forecasted_post_date).toBe(orig.forecasted_post_date);
+        expect(s.forecasted_close_date).toBe(orig.forecasted_close_date);
+        expect(s.funding_instruments).toEqual(orig.funding_instruments);
+        expect(s.funding_categories).toEqual(orig.funding_categories);
         expect(s.applicant_types).toEqual(expect.arrayContaining(orig.applicant_types));
         expect(s.applicant_types).toHaveLength(orig.applicant_types.length);
         // UTCDateTimeSchema normalizes datetime strings through a Date, so compare via Date
@@ -753,27 +758,13 @@ describe("Grants.gov plugin", () => {
         const { result: common } = toCommon(fullSource);
         const { result: roundTripped } = fromCommon(common);
 
-        const s = roundTripped.summary!;
         const att = roundTripped.attachments![0];
 
         // opportunity_attachment_id: not stored in CommonGrants custom fields
         expect(att.opportunity_attachment_id).toBeNull();
 
-        // forecasted_post_date / forecasted_close_date: no CommonGrants equivalent
-        expect(s.forecasted_post_date).toBeNull();
-        expect(s.forecasted_close_date).toBeNull();
-
-        // agency_email_address_description: not captured in contactInfo custom field
-        expect(s.agency_email_address_description).toBeNull();
-
-        // funding_instruments: no CommonGrants equivalent — reset to []
-        expect(s.funding_instruments).toEqual([]);
-
-        // funding_categories: no CommonGrants equivalent — reset to []
-        expect(s.funding_categories).toEqual([]);
-
         // is_forecast: derived from opportunity_status, not stored independently
-        expect(s.is_forecast).toBe(false);
+        expect(roundTripped.summary!.is_forecast).toBe(false);
       });
     });
   });

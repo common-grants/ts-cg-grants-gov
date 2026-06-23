@@ -31,6 +31,7 @@ export const AttachmentValueSchema = z.object({
 export const ContactInfoValueSchema = z.object({
   name: z.string().nullish(),
   email: z.string().nullish(),
+  emailDescription: z.string().nullish(),
   phone: z.string().nullish(),
   description: z.string().nullish(),
 });
@@ -95,6 +96,40 @@ const customFields = {
     value: CostSharingValueSchema,
     description: "Whether cost sharing or matching funds are required for this opportunity",
   },
+  sourceCreatedAt: {
+    fieldType: "string",
+    description: "Original creation timestamp of the opportunity record (microsecond precision)",
+  },
+  sourceUpdatedAt: {
+    fieldType: "string",
+    description: "Original last update timestamp of the opportunity record (microsecond precision)",
+  },
+  summaryCreatedAt: {
+    fieldType: "string",
+    description: "Creation timestamp of the opportunity summary record",
+  },
+  summaryUpdatedAt: {
+    fieldType: "string",
+    description: "Last update timestamp of the opportunity summary record",
+  },
+  forecastedPostDate: {
+    fieldType: "string",
+    description: "Forecasted post date for the opportunity",
+  },
+  forecastedCloseDate: {
+    fieldType: "string",
+    description: "Forecasted close date for the opportunity",
+  },
+  fundingInstruments: {
+    fieldType: "array",
+    value: z.array(z.string()),
+    description: "Funding instrument types for this opportunity",
+  },
+  fundingCategories: {
+    fieldType: "array",
+    value: z.array(z.string()),
+    description: "Funding category types for this opportunity",
+  },
 } as const;
 
 // =============================================================================
@@ -127,8 +162,8 @@ const OpportunitySummarySourceSchema = z.object({
   funding_instruments: z.array(z.string()).default([]),
   funding_categories: z.array(z.string()).default([]),
   applicant_types: z.array(z.string()).default([]),
-  created_at: z.string().datetime(),
-  updated_at: z.string().datetime(),
+  created_at: z.string().datetime({ offset: true, precision: 6 }),
+  updated_at: z.string().datetime({ offset: true, precision: 6 }),
 });
 
 const OpportunityAttachmentSourceSchema = z.object({
@@ -155,8 +190,8 @@ export const GrantsGovOpportunitySchema = z.object({
   summary: OpportunitySummarySourceSchema.nullish(),
   opportunity_status: z.enum(["forecasted", "posted", "closed", "archived"]),
   attachments: z.array(OpportunityAttachmentSourceSchema).nullish(),
-  created_at: z.string().datetime(),
-  updated_at: z.string().datetime(),
+  created_at: z.string().datetime({ offset: true, precision: 6 }),
+  updated_at: z.string().datetime({ offset: true, precision: 6 }),
 });
 
 export type GrantsGovOpportunity = z.infer<typeof GrantsGovOpportunitySchema>;
@@ -220,6 +255,37 @@ const APPLICANT_TYPE_FROM_COMMON: Record<string, string> = {
   unrestricted: "unrestricted",
   custom: "other",
 };
+
+// =============================================================================
+// Datetime helpers
+// =============================================================================
+
+/**
+ * Normalizes any datetime (Date or string) to a grants.gov-compatible string:
+ * UTC, microsecond precision (6 decimal places), `+00:00` offset suffix.
+ * e.g. "2025-01-01T00:00:00.558102+00:00"
+ *
+ * When given a string already in UTC (Z or +00:00), fractional seconds up to 6
+ * digits are preserved without going through a JS Date (which only has ms precision).
+ */
+function toGrantsGovDatetime(dt: Date | string): string {
+  if (dt instanceof Date) {
+    // Date only has ms precision → pad to 6 decimal places
+    return dt.toISOString().replace(/\.(\d{3})Z$/, ".$1000+00:00");
+  }
+  const s = String(dt);
+  const m = s.match(/^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})(?:\.(\d+))?(Z|[+-]\d{2}:\d{2})$/);
+  if (!m) {
+    return new Date(s).toISOString().replace(/\.(\d{3})Z$/, ".$1000+00:00");
+  }
+  const [, base, frac = "", tz = "Z"] = m;
+  const paddedFrac = frac.padEnd(6, "0").slice(0, 6);
+  if (tz === "Z" || tz === "+00:00") {
+    return `${base}.${paddedFrac}+00:00`;
+  }
+  // Non-UTC offset: adjust via Date (sub-ms precision lost)
+  return new Date(s).toISOString().replace(/\.(\d{3})Z$/, ".$1000+00:00");
+}
 
 // =============================================================================
 // toCommon — Simpler.Grants.gov opportunity → CommonGrants Opportunity
@@ -340,13 +406,18 @@ function toCommon(source: GrantsGovOpportunity): TransformResult<unknown> {
   }
 
   if (summary) {
-    if (summary.agency_email_address != null || summary.agency_contact_description != null) {
+    if (
+      summary.agency_email_address != null ||
+      summary.agency_contact_description != null ||
+      summary.agency_email_address_description != null
+    ) {
       cf.contactInfo = {
         name: "contactInfo",
         fieldType: "object",
         value: {
           name: null,
           email: summary.agency_email_address,
+          emailDescription: summary.agency_email_address_description,
           phone: null,
           description: summary.agency_contact_description,
         },
@@ -379,7 +450,64 @@ function toCommon(source: GrantsGovOpportunity): TransformResult<unknown> {
         value: { isRequired: summary.is_cost_sharing },
       };
     }
+
+    cf.summaryCreatedAt = {
+      name: "summaryCreatedAt",
+      fieldType: "string",
+      value: summary.created_at,
+    };
+
+    cf.summaryUpdatedAt = {
+      name: "summaryUpdatedAt",
+      fieldType: "string",
+      value: summary.updated_at,
+    };
+
+    if (summary.forecasted_post_date != null) {
+      cf.forecastedPostDate = {
+        name: "forecastedPostDate",
+        fieldType: "string",
+        value: summary.forecasted_post_date,
+      };
+    }
+
+    if (summary.forecasted_close_date != null) {
+      cf.forecastedCloseDate = {
+        name: "forecastedCloseDate",
+        fieldType: "string",
+        value: summary.forecasted_close_date,
+      };
+    }
+
+    if (summary.funding_instruments.length > 0) {
+      cf.fundingInstruments = {
+        name: "fundingInstruments",
+        fieldType: "array",
+        value: summary.funding_instruments,
+      };
+    }
+
+    if (summary.funding_categories.length > 0) {
+      cf.fundingCategories = {
+        name: "fundingCategories",
+        fieldType: "array",
+        value: summary.funding_categories,
+      };
+    }
   }
+
+  // Store original datetime strings to preserve microsecond precision across
+  // the round-trip — UTCDateTimeSchema coerces createdAt/lastModifiedAt to Date
+  cf.sourceCreatedAt = {
+    name: "sourceCreatedAt",
+    fieldType: "string",
+    value: source.created_at,
+  };
+  cf.sourceUpdatedAt = {
+    name: "sourceUpdatedAt",
+    fieldType: "string",
+    value: source.updated_at,
+  };
 
   return {
     result: {
@@ -391,8 +519,8 @@ function toCommon(source: GrantsGovOpportunity): TransformResult<unknown> {
       keyDates,
       acceptedApplicantTypes,
       customFields: Object.keys(cf).length > 0 ? cf : undefined,
-      createdAt: source.created_at,
-      lastModifiedAt: source.updated_at,
+      createdAt: new Date(source.created_at).toISOString(),
+      lastModifiedAt: new Date(source.updated_at).toISOString(),
     },
     errors: [],
   };
@@ -441,13 +569,14 @@ function fromCommon(common: any): TransformResult<GrantsGovOpportunity> {
     ? parseInt(funding.maxAwardAmount.amount, 10)
     : null;
 
-  // Reconstruct summary from common standard fields and custom fields
-  const createdAtStr =
-    common.createdAt instanceof Date ? common.createdAt.toISOString() : String(common.createdAt);
-  const updatedAtStr =
-    common.lastModifiedAt instanceof Date
-      ? common.lastModifiedAt.toISOString()
-      : String(common.lastModifiedAt);
+  // Prefer the raw custom-field strings (which bypass UTCDateTimeSchema coercion)
+  // so microsecond precision is preserved; fall back to the standard fields.
+  const createdAtStr = cf.sourceCreatedAt?.value
+    ? toGrantsGovDatetime(cf.sourceCreatedAt.value as string)
+    : toGrantsGovDatetime(common.createdAt as Date | string);
+  const updatedAtStr = cf.sourceUpdatedAt?.value
+    ? toGrantsGovDatetime(cf.sourceUpdatedAt.value as string)
+    : toGrantsGovDatetime(common.lastModifiedAt as Date | string);
 
   const summary = {
     summary_description: common.description ?? null,
@@ -461,17 +590,21 @@ function fromCommon(common: any): TransformResult<GrantsGovOpportunity> {
     award_ceiling: awardCeiling,
     additional_info_url: cf.additionalInfo?.value?.url ?? null,
     additional_info_url_description: cf.additionalInfo?.value?.description ?? null,
-    forecasted_post_date: null,
-    forecasted_close_date: null,
+    forecasted_post_date: cf.forecastedPostDate?.value ?? null,
+    forecasted_close_date: cf.forecastedCloseDate?.value ?? null,
     fiscal_year: cf.fiscalYear?.value ?? null,
     agency_contact_description: cf.contactInfo?.value?.description ?? null,
     agency_email_address: cf.contactInfo?.value?.email ?? null,
-    agency_email_address_description: null,
-    funding_instruments: [],
-    funding_categories: [],
+    agency_email_address_description: cf.contactInfo?.value?.emailDescription ?? null,
+    funding_instruments: cf.fundingInstruments?.value ?? [],
+    funding_categories: cf.fundingCategories?.value ?? [],
     applicant_types: applicantTypes,
-    created_at: createdAtStr,
-    updated_at: updatedAtStr,
+    created_at: cf.summaryCreatedAt?.value
+      ? toGrantsGovDatetime(cf.summaryCreatedAt.value as string)
+      : createdAtStr,
+    updated_at: cf.summaryUpdatedAt?.value
+      ? toGrantsGovDatetime(cf.summaryUpdatedAt.value as string)
+      : updatedAtStr,
   };
 
   // Reconstruct agency fields from custom field
@@ -504,7 +637,7 @@ function fromCommon(common: any): TransformResult<GrantsGovOpportunity> {
         created_at: att.createdAt,
         updated_at: att.lastModifiedAt,
       })
-    ) ?? null;
+    ) ?? [];
 
   return {
     result: {

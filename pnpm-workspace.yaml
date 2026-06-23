@@ -1,2 +1,1 @@
-onlyBuiltDependencies:
-  - "@common-grants/sdk@https://codeload.github.com/HHS/simpler-grants-protocol/tar.gz/15c32b792cb8bf8c754da27d6ca3b1d965003827#path:lib/ts-sdk"
+
