@@ -42,9 +42,10 @@ jobs:
       # TODO: Change this back to pnpm run ci after initial release
       - run: pnpm run build
 
+      # Trusted publishing (OIDC) needs npm >= 11.5.1; Node 22 bundles an older npm.
+      - run: npm install -g npm@latest
+
+      # Tokenless publish via npm trusted publishing; provenance is emitted
+      # automatically for a public repo + public package.
       - name: Publish
-        env:
-          # TODO: Replace with trusted publishers after initial release
-          # https://github.com/common-grants/ts-cg-grants-gov/issues/4
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: pnpm publish --provenance --access public --no-git-checks
+        run: npm publish --access public
