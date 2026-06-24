@@ -1,5 +1,30 @@
 # Changelog
 
+## [0.2.0](https://github.com/common-grants/ts-cg-grants-gov/compare/v0.1.0...v0.2.0) (2026-06-24)
+
+
+### ⚠ BREAKING CHANGES
+
+* Adding transforms to plugin ([#11](https://github.com/common-grants/ts-cg-grants-gov/issues/11))
+
+#### Plugin Shape change
+
+Old:
+```
+plugin.extensions.Opportunity
+```
+
+New:
+```
+plugin.schemas.Opportunity.commonSchema
+plugin.schemas.Opportunity.toCommon
+plugin.schemas.Opportunity.fromCommon
+```
+
+### Features
+
+* Adding transforms to plugin ([#11](https://github.com/common-grants/ts-cg-grants-gov/issues/11)) ([bfa881d](https://github.com/common-grants/ts-cg-grants-gov/commit/bfa881dcc0214bc2ca6788fdd16a96838a7db71f))
+
 ## 0.1.0 (2026-04-08)
 
 
