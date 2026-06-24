@@ -7,6 +7,20 @@
 
 * Adding transforms to plugin ([#11](https://github.com/common-grants/ts-cg-grants-gov/issues/11))
 
+#### Plugin Shape change
+
+Old:
+```
+plugin.extensions.Opportunity
+```
+
+New:
+```
+plugin.schemas.Opportunity.commonSchema
+plugin.schemas.Opportunity.toCommon
+plugin.schemas.Opportunity.fromCommon
+```
+
 ### Features
 
 * Adding transforms to plugin ([#11](https://github.com/common-grants/ts-cg-grants-gov/issues/11)) ([bfa881d](https://github.com/common-grants/ts-cg-grants-gov/commit/bfa881dcc0214bc2ca6788fdd16a96838a7db71f))
