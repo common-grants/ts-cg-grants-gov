@@ -50,15 +50,15 @@ Both functions return a `TransformResult<T>` — never a bare value, never a thr
 
 ```ts
 interface TransformResult<T> {
-  result: T;               // The transformed value; may be partial if errors occurred
+  result: T; // The transformed value; may be partial if errors occurred
   errors: TransformError[]; // Empty on success
 }
 
 class TransformError extends Error {
-  path?: string;           // Dot-notation path to the failing field (e.g. "summary.fiscal_year")
-  handler?: string;        // Name of the handler that raised the error
-  sourceValue?: unknown;   // The full input record (may contain PII — handle carefully)
-  cause?: unknown;         // The original exception
+  path?: string; // Dot-notation path to the failing field (e.g. "summary.fiscal_year")
+  handler?: string; // Name of the handler that raised the error
+  sourceValue?: unknown; // The full input record (may contain PII — handle carefully)
+  cause?: unknown; // The original exception
 }
 ```
 
@@ -91,21 +91,21 @@ if (errors.length > 0) {
 
 The table below shows how fields from `GrantsGovOpportunity` (and its nested `summary`) map to `OpportunityBase` fields.
 
-| Source field | CommonGrants field | Notes |
-|---|---|---|
-| `opportunity_id` | `id` | UUID string |
-| `opportunity_title` | `title` | Falls back to `""` if absent |
-| `summary.summary_description` | `description` | Falls back to `""` if absent |
-| `opportunity_status` | `status.value` | See [Status mapping](#status-mapping) |
-| `created_at` | `createdAt` | Coerced to JS `Date` via `UTCDateTimeSchema` |
-| `updated_at` | `lastModifiedAt` | Coerced to JS `Date` via `UTCDateTimeSchema` |
-| `summary.estimated_total_program_funding` | `funding.totalAmountAvailable` | Integer → `{ amount: string, currency: "USD" }` |
-| `summary.award_floor` | `funding.minAwardAmount` | Integer → `{ amount: string, currency: "USD" }` |
-| `summary.award_ceiling` | `funding.maxAwardAmount` | Integer → `{ amount: string, currency: "USD" }` |
-| `summary.expected_number_of_awards` | `funding.estimatedAwardCount` | Integer |
-| `summary.post_date` | `keyDates.postDate` | `singleDate` event |
-| `summary.close_date` | `keyDates.closeDate` | `singleDate` event |
-| `summary.applicant_types` | `acceptedApplicantTypes` | See [Applicant-type mapping](#applicant-type-mapping) |
+| Source field                              | CommonGrants field             | Notes                                                 |
+| ----------------------------------------- | ------------------------------ | ----------------------------------------------------- |
+| `opportunity_id`                          | `id`                           | UUID string                                           |
+| `opportunity_title`                       | `title`                        | Falls back to `""` if absent                          |
+| `summary.summary_description`             | `description`                  | Falls back to `""` if absent                          |
+| `opportunity_status`                      | `status.value`                 | See [Status mapping](#status-mapping)                 |
+| `created_at`                              | `createdAt`                    | Coerced to JS `Date` via `UTCDateTimeSchema`          |
+| `updated_at`                              | `lastModifiedAt`               | Coerced to JS `Date` via `UTCDateTimeSchema`          |
+| `summary.estimated_total_program_funding` | `funding.totalAmountAvailable` | Integer → `{ amount: string, currency: "USD" }`       |
+| `summary.award_floor`                     | `funding.minAwardAmount`       | Integer → `{ amount: string, currency: "USD" }`       |
+| `summary.award_ceiling`                   | `funding.maxAwardAmount`       | Integer → `{ amount: string, currency: "USD" }`       |
+| `summary.expected_number_of_awards`       | `funding.estimatedAwardCount`  | Integer                                               |
+| `summary.post_date`                       | `keyDates.postDate`            | `singleDate` event                                    |
+| `summary.close_date`                      | `keyDates.closeDate`           | `singleDate` event                                    |
+| `summary.applicant_types`                 | `acceptedApplicantTypes`       | See [Applicant-type mapping](#applicant-type-mapping) |
 
 All remaining source fields are carried forward as custom fields. See the [Custom fields reference](#custom-fields-reference) below.
 
@@ -117,18 +117,18 @@ Custom fields are declared as `CustomFieldSpec` objects in `src/index.ts` and ac
 
 ### Scalar fields
 
-| Field name | `fieldType` | TypeScript type | Source field | Description |
-|---|---|---|---|---|
-| `legacySerialId` | `"integer"` | `number` | `legacy_opportunity_id` | Integer ID for legacy system compatibility |
-| `federalOpportunityNumber` | `"string"` | `string` | `opportunity_number` | Federal opportunity number |
-| `federalFundingSource` | `"string"` | `string` | `category` | Grant category type code |
-| `fiscalYear` | `"integer"` | `number` | `summary.fiscal_year` | Fiscal year associated with the opportunity |
-| `sourceCreatedAt` | `"string"` | `string` | `created_at` | Original creation timestamp (microsecond precision, see [Wire format notes](#wire-format-notes)) |
-| `sourceUpdatedAt` | `"string"` | `string` | `updated_at` | Original update timestamp (microsecond precision) |
-| `summaryCreatedAt` | `"string"` | `string` | `summary.created_at` | Opportunity summary creation timestamp |
-| `summaryUpdatedAt` | `"string"` | `string` | `summary.updated_at` | Opportunity summary update timestamp |
-| `forecastedPostDate` | `"string"` | `string` | `summary.forecasted_post_date` | Forecasted post date |
-| `forecastedCloseDate` | `"string"` | `string` | `summary.forecasted_close_date` | Forecasted close date |
+| Field name                 | `fieldType` | TypeScript type | Source field                    | Description                                                                                      |
+| -------------------------- | ----------- | --------------- | ------------------------------- | ------------------------------------------------------------------------------------------------ |
+| `legacySerialId`           | `"integer"` | `number`        | `legacy_opportunity_id`         | Integer ID for legacy system compatibility                                                       |
+| `federalOpportunityNumber` | `"string"`  | `string`        | `opportunity_number`            | Federal opportunity number                                                                       |
+| `federalFundingSource`     | `"string"`  | `string`        | `category`                      | Grant category type code                                                                         |
+| `fiscalYear`               | `"integer"` | `number`        | `summary.fiscal_year`           | Fiscal year associated with the opportunity                                                      |
+| `sourceCreatedAt`          | `"string"`  | `string`        | `created_at`                    | Original creation timestamp (microsecond precision, see [Wire format notes](#wire-format-notes)) |
+| `sourceUpdatedAt`          | `"string"`  | `string`        | `updated_at`                    | Original update timestamp (microsecond precision)                                                |
+| `summaryCreatedAt`         | `"string"`  | `string`        | `summary.created_at`            | Opportunity summary creation timestamp                                                           |
+| `summaryUpdatedAt`         | `"string"`  | `string`        | `summary.updated_at`            | Opportunity summary update timestamp                                                             |
+| `forecastedPostDate`       | `"string"`  | `string`        | `summary.forecasted_post_date`  | Forecasted post date                                                                             |
+| `forecastedCloseDate`      | `"string"`  | `string`        | `summary.forecasted_close_date` | Forecasted close date                                                                            |
 
 > **Why `sourceCreatedAt`/`sourceUpdatedAt`?** The CommonGrants schema coerces `createdAt`/`lastModifiedAt` through `UTCDateTimeSchema`, which converts datetime strings to JS `Date` objects (millisecond precision). The Simpler.Grants.gov API uses microsecond precision (6 decimal places). Storing the original strings in `sourceCreatedAt`/`sourceUpdatedAt` lets `fromCommon` reconstruct them exactly, preserving sub-millisecond fidelity across round-trips.
 >
@@ -136,83 +136,83 @@ Custom fields are declared as `CustomFieldSpec` objects in `src/index.ts` and ac
 
 ### Object fields
 
-| Field name | `fieldType` | Value schema | Description |
-|---|---|---|---|
-| `agency` | `"object"` | `AgencyValueSchema` | Agency code, name, parent name, parent code |
-| `contactInfo` | `"object"` | `ContactInfoValueSchema` | Agency contact email, description, and email link text |
-| `additionalInfo` | `"object"` | `AdditionalInfoValueSchema` | URL and description for additional info |
-| `costSharing` | `"object"` | `CostSharingValueSchema` | Whether cost sharing is required |
+| Field name       | `fieldType` | Value schema                | Description                                            |
+| ---------------- | ----------- | --------------------------- | ------------------------------------------------------ |
+| `agency`         | `"object"`  | `AgencyValueSchema`         | Agency code, name, parent name, parent code            |
+| `contactInfo`    | `"object"`  | `ContactInfoValueSchema`    | Agency contact email, description, and email link text |
+| `additionalInfo` | `"object"`  | `AdditionalInfoValueSchema` | URL and description for additional info                |
+| `costSharing`    | `"object"`  | `CostSharingValueSchema`    | Whether cost sharing is required                       |
 
 **AgencyValueSchema**
 
 ```ts
 z.object({
-  code: z.string().nullish(),        // e.g. "HHS-ACF"   (source: agency_code)
-  name: z.string().nullish(),        // e.g. "Administration for Children and Families"
-  parentName: z.string().nullish(),  // e.g. "Department of Health and Human Services"
-  parentCode: z.string().nullish(),  // e.g. "HHS"
-})
+  code: z.string().nullish(), // e.g. "HHS-ACF"   (source: agency_code)
+  name: z.string().nullish(), // e.g. "Administration for Children and Families"
+  parentName: z.string().nullish(), // e.g. "Department of Health and Human Services"
+  parentCode: z.string().nullish(), // e.g. "HHS"
+});
 ```
 
 **ContactInfoValueSchema**
 
 ```ts
 z.object({
-  name: z.string().nullish(),              // Contact name (not in v1 source; always null)
-  email: z.string().nullish(),             // source: summary.agency_email_address
-  emailDescription: z.string().nullish(),  // source: summary.agency_email_address_description
-  phone: z.string().nullish(),             // Not in v1 source; always null
-  description: z.string().nullish(),       // source: summary.agency_contact_description
-})
+  name: z.string().nullish(), // Contact name (not in v1 source; always null)
+  email: z.string().nullish(), // source: summary.agency_email_address
+  emailDescription: z.string().nullish(), // source: summary.agency_email_address_description
+  phone: z.string().nullish(), // Not in v1 source; always null
+  description: z.string().nullish(), // source: summary.agency_contact_description
+});
 ```
 
 **AdditionalInfoValueSchema**
 
 ```ts
 z.object({
-  url: z.string().nullish(),          // source: summary.additional_info_url
-  description: z.string().nullish(),  // source: summary.additional_info_url_description
-})
+  url: z.string().nullish(), // source: summary.additional_info_url
+  description: z.string().nullish(), // source: summary.additional_info_url_description
+});
 ```
 
 **CostSharingValueSchema**
 
 ```ts
 z.object({
-  isRequired: z.boolean().nullish(),  // source: summary.is_cost_sharing
-})
+  isRequired: z.boolean().nullish(), // source: summary.is_cost_sharing
+});
 ```
 
 ### Array fields
 
-| Field name | `fieldType` | Element schema | Description |
-|---|---|---|---|
-| `assistanceListings` | `"array"` | `AssistanceListingValueSchema` | Assistance listing numbers and program titles |
-| `attachments` | `"array"` | `AttachmentValueSchema` | NOFOs and supplemental documents |
-| `fundingInstruments` | `"array"` | `z.string()` | Funding instrument type strings |
-| `fundingCategories` | `"array"` | `z.string()` | Funding category type strings |
+| Field name           | `fieldType` | Element schema                 | Description                                   |
+| -------------------- | ----------- | ------------------------------ | --------------------------------------------- |
+| `assistanceListings` | `"array"`   | `AssistanceListingValueSchema` | Assistance listing numbers and program titles |
+| `attachments`        | `"array"`   | `AttachmentValueSchema`        | NOFOs and supplemental documents              |
+| `fundingInstruments` | `"array"`   | `z.string()`                   | Funding instrument type strings               |
+| `fundingCategories`  | `"array"`   | `z.string()`                   | Funding category type strings                 |
 
 **AssistanceListingValueSchema**
 
 ```ts
 z.object({
-  identifier: z.string().nullish(),    // source: assistance_listing_number  e.g. "93.123"
-  programTitle: z.string().nullish(),  // source: program_title
-})
+  identifier: z.string().nullish(), // source: assistance_listing_number  e.g. "93.123"
+  programTitle: z.string().nullish(), // source: program_title
+});
 ```
 
 **AttachmentValueSchema**
 
 ```ts
 z.object({
-  downloadUrl: z.string().nullish(),    // source: download_url
-  name: z.string(),                    // source: file_name (required; falls back to "")
-  description: z.string().nullish(),   // source: file_description
+  downloadUrl: z.string().nullish(), // source: download_url
+  name: z.string(), // source: file_name (required; falls back to "")
+  description: z.string().nullish(), // source: file_description
   sizeInBytes: z.number().int().nullish(),
   mimeType: z.string().nullish(),
-  createdAt: z.string().datetime(),    // source: attachment.created_at ?? opportunity.created_at
+  createdAt: z.string().datetime(), // source: attachment.created_at ?? opportunity.created_at
   lastModifiedAt: z.string().datetime(), // source: attachment.updated_at ?? opportunity.updated_at
-})
+});
 ```
 
 > **Note:** `opportunity_attachment_id` is not carried forward to CommonGrants — it is intentionally dropped and will be `null` after a `fromCommon` round-trip.
@@ -224,20 +224,20 @@ z.object({
 **`toCommon`** (Grants.gov → CommonGrants):
 
 | `opportunity_status` | `status.value` |
-|---|---|
-| `"forecasted"` | `"forecasted"` |
-| `"posted"` | `"open"` |
-| `"closed"` | `"closed"` |
-| `"archived"` | `"closed"` |
+| -------------------- | -------------- |
+| `"forecasted"`       | `"forecasted"` |
+| `"posted"`           | `"open"`       |
+| `"closed"`           | `"closed"`     |
+| `"archived"`         | `"closed"`     |
 
 **`fromCommon`** (CommonGrants → Grants.gov):
 
-| `status.value` | `opportunity_status` |
-|---|---|
-| `"forecasted"` | `"forecasted"` |
-| `"open"` | `"posted"` |
-| `"closed"` | `"closed"` |
-| `"custom"` | `"posted"` (default fallback) |
+| `status.value` | `opportunity_status`          |
+| -------------- | ----------------------------- |
+| `"forecasted"` | `"forecasted"`                |
+| `"open"`       | `"posted"`                    |
+| `"closed"`     | `"closed"`                    |
+| `"custom"`     | `"posted"` (default fallback) |
 
 The `is_forecast` field on `OpportunitySummarySource` is derived from the status: it is `true` when `opportunity_status === "forecasted"`.
 
@@ -247,24 +247,24 @@ The `is_forecast` field on `OpportunitySummarySource` is derived from the status
 
 **`toCommon`** (Grants.gov → CommonGrants):
 
-| `applicant_types` value | CommonGrants `value` |
-|---|---|
-| `"state_governments"` | `"government_state"` |
-| `"county_governments"` | `"government_county"` |
-| `"city_or_township_governments"` | `"government_municipal"` |
-| `"special_district_governments"` | `"government_special_district"` |
-| `"independent_school_districts"` | `"school_district_independent"` |
-| `"public_and_state_institutions_of_higher_education"` | `"higher_education_public"` |
-| `"private_institutions_of_higher_education"` | `"higher_education_private"` |
-| `"federally_recognized_native_american_tribal_governments"` | `"government_tribal"` |
-| `"other_native_american_tribal_organizations"` | `"organization_tribal_other"` |
-| `"nonprofits_non_higher_education_with_501c3"` | `"non_profit_with_501c3"` |
-| `"nonprofits_non_higher_education_without_501c3"` | `"nonprofit_without_501c3"` |
-| `"individuals"` | `"individual"` |
-| `"for_profit_organizations_other_than_small_businesses"` | `"for_profit_not_small_business"` |
-| `"small_businesses"` | `"for_profit_small_business"` |
-| `"unrestricted"` | `"unrestricted"` |
-| _(anything else)_ | `"custom"` (with `customValue` set to the original string) |
+| `applicant_types` value                                     | CommonGrants `value`                                       |
+| ----------------------------------------------------------- | ---------------------------------------------------------- |
+| `"state_governments"`                                       | `"government_state"`                                       |
+| `"county_governments"`                                      | `"government_county"`                                      |
+| `"city_or_township_governments"`                            | `"government_municipal"`                                   |
+| `"special_district_governments"`                            | `"government_special_district"`                            |
+| `"independent_school_districts"`                            | `"school_district_independent"`                            |
+| `"public_and_state_institutions_of_higher_education"`       | `"higher_education_public"`                                |
+| `"private_institutions_of_higher_education"`                | `"higher_education_private"`                               |
+| `"federally_recognized_native_american_tribal_governments"` | `"government_tribal"`                                      |
+| `"other_native_american_tribal_organizations"`              | `"organization_tribal_other"`                              |
+| `"nonprofits_non_higher_education_with_501c3"`              | `"non_profit_with_501c3"`                                  |
+| `"nonprofits_non_higher_education_without_501c3"`           | `"nonprofit_without_501c3"`                                |
+| `"individuals"`                                             | `"individual"`                                             |
+| `"for_profit_organizations_other_than_small_businesses"`    | `"for_profit_not_small_business"`                          |
+| `"small_businesses"`                                        | `"for_profit_small_business"`                              |
+| `"unrestricted"`                                            | `"unrestricted"`                                           |
+| _(anything else)_                                           | `"custom"` (with `customValue` set to the original string) |
 
 **`fromCommon`** (CommonGrants → Grants.gov): the reverse of the table above. `"organization"` and `"custom"` both map to `"other"`.
 
@@ -423,7 +423,9 @@ function toCommon(source: MySourceOpportunity): TransformResult<unknown> {
   }
 
   return {
-    result: { /* ... */ },
+    result: {
+      /* ... */
+    },
     errors,
   };
 }

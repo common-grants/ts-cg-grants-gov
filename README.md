@@ -107,16 +107,16 @@ if (errors.length > 0) {
     console.error(`[${err.path}] ${err.message}`);
   }
 } else {
-  console.log(result.title);                          // "STEM Education Grant Program"
-  console.log(result.status.value);                   // "open"  (posted → open)
+  console.log(result.title); // "STEM Education Grant Program"
+  console.log(result.status.value); // "open"  (posted → open)
   console.log(result.customFields?.fiscalYear?.value); // 2025
   console.log(result.customFields?.agency?.value.code); // "HHS"
 }
 
 // Convert back to Simpler.Grants.gov format
 const { result: native } = fromCommon(result);
-console.log(native.opportunity_status);  // "posted"
-console.log(native.agency_code);         // "HHS"
+console.log(native.opportunity_status); // "posted"
+console.log(native.agency_code); // "HHS"
 ```
 
 Both functions always return `{ result, errors }` — they never throw. Check `errors.length` before using `result`. See [TRANSFORMS.md](./TRANSFORMS.md) for the complete field mapping reference and error handling details.
@@ -160,26 +160,26 @@ console.log(opportunity.customFields?.internalNotes?.value);
 
 This plugin adds 18 Grants.gov-specific fields to the `Opportunity` schema. Access them via `opportunity.customFields?.<fieldName>?.value` after parsing.
 
-| Field | Type | Description |
-|---|---|---|
-| `legacySerialId` | `integer` | Integer ID for legacy system compatibility |
-| `federalOpportunityNumber` | `string` | Federal opportunity number |
-| `assistanceListings` | `AssistanceListingValue[]` | Assistance listing numbers and program titles |
-| `agency` | `AgencyValue` | Agency code, name, parent name, parent code |
-| `attachments` | `AttachmentValue[]` | NOFOs and supplemental documents |
-| `federalFundingSource` | `string` | Grant category type code |
-| `contactInfo` | `ContactInfoValue` | Agency contact email, description, and email link text |
-| `additionalInfo` | `AdditionalInfoValue` | URL and description for additional info |
-| `fiscalYear` | `integer` | Fiscal year associated with the opportunity |
-| `costSharing` | `CostSharingValue` | Whether cost sharing is required |
-| `sourceCreatedAt` | `string` | Original creation timestamp (microsecond precision) |
-| `sourceUpdatedAt` | `string` | Original update timestamp (microsecond precision) |
-| `summaryCreatedAt` | `string` | Opportunity summary creation timestamp |
-| `summaryUpdatedAt` | `string` | Opportunity summary update timestamp |
-| `forecastedPostDate` | `string` | Forecasted post date |
-| `forecastedCloseDate` | `string` | Forecasted close date |
-| `fundingInstruments` | `string[]` | Funding instrument type strings |
-| `fundingCategories` | `string[]` | Funding category type strings |
+| Field                      | Type                       | Description                                            |
+| -------------------------- | -------------------------- | ------------------------------------------------------ |
+| `legacySerialId`           | `integer`                  | Integer ID for legacy system compatibility             |
+| `federalOpportunityNumber` | `string`                   | Federal opportunity number                             |
+| `assistanceListings`       | `AssistanceListingValue[]` | Assistance listing numbers and program titles          |
+| `agency`                   | `AgencyValue`              | Agency code, name, parent name, parent code            |
+| `attachments`              | `AttachmentValue[]`        | NOFOs and supplemental documents                       |
+| `federalFundingSource`     | `string`                   | Grant category type code                               |
+| `contactInfo`              | `ContactInfoValue`         | Agency contact email, description, and email link text |
+| `additionalInfo`           | `AdditionalInfoValue`      | URL and description for additional info                |
+| `fiscalYear`               | `integer`                  | Fiscal year associated with the opportunity            |
+| `costSharing`              | `CostSharingValue`         | Whether cost sharing is required                       |
+| `sourceCreatedAt`          | `string`                   | Original creation timestamp (microsecond precision)    |
+| `sourceUpdatedAt`          | `string`                   | Original update timestamp (microsecond precision)      |
+| `summaryCreatedAt`         | `string`                   | Opportunity summary creation timestamp                 |
+| `summaryUpdatedAt`         | `string`                   | Opportunity summary update timestamp                   |
+| `forecastedPostDate`       | `string`                   | Forecasted post date                                   |
+| `forecastedCloseDate`      | `string`                   | Forecasted close date                                  |
+| `fundingInstruments`       | `string[]`                 | Funding instrument type strings                        |
+| `fundingCategories`        | `string[]`                 | Funding category type strings                          |
 
 For value object shapes, source field mappings, and status/applicant-type conversion tables, see [TRANSFORMS.md](./TRANSFORMS.md).
 
@@ -187,12 +187,12 @@ For value object shapes, source field mappings, and status/applicant-type conver
 
 The plugin is assembled in `src/index.ts` using four components:
 
-| Component | What it is | File |
-|---|---|---|
-| `GrantsGovOpportunitySchema` | Zod schema for the Simpler.Grants.gov v1 API response | `schemas.ts` |
-| `customFields` | `CustomFieldSpec` declarations for all 18 Grants.gov-specific fields | `index.ts` |
-| `toCommon` | Transforms `GrantsGovOpportunity → CommonGrants Opportunity` | `transforms.ts` |
-| `fromCommon` | Transforms `CommonGrants Opportunity → GrantsGovOpportunity` | `transforms.ts` |
+| Component                    | What it is                                                           | File            |
+| ---------------------------- | -------------------------------------------------------------------- | --------------- |
+| `GrantsGovOpportunitySchema` | Zod schema for the Simpler.Grants.gov v1 API response                | `schemas.ts`    |
+| `customFields`               | `CustomFieldSpec` declarations for all 18 Grants.gov-specific fields | `index.ts`      |
+| `toCommon`                   | Transforms `GrantsGovOpportunity → CommonGrants Opportunity`         | `transforms.ts` |
+| `fromCommon`                 | Transforms `CommonGrants Opportunity → GrantsGovOpportunity`         | `transforms.ts` |
 
 These are wired together via `definePlugin`:
 
@@ -207,10 +207,10 @@ const plugin = definePlugin({
   },
   schemas: {
     Opportunity: {
-      customFields,           // CustomFieldSpec declarations
+      customFields, // CustomFieldSpec declarations
       sourceSchema: GrantsGovOpportunitySchema,
-      toCommon,               // (source: GrantsGovOpportunity) => TransformResult<unknown>
-      fromCommon,             // (common: unknown) => TransformResult<GrantsGovOpportunity>
+      toCommon, // (source: GrantsGovOpportunity) => TransformResult<unknown>
+      fromCommon, // (common: unknown) => TransformResult<GrantsGovOpportunity>
     },
   },
 });
