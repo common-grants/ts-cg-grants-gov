@@ -18,8 +18,8 @@
  * side: wrong value families are rejected at compile time.
  *
  * At runtime, registered filters are also validated locally (fail-fast, before
- * any request) against their declared `filterType`, and the server echoes back
- * the `filterInfo` it applied — so you can confirm the filters reached the wire.
+ * any request) against their declared `filterType`. The result reports the
+ * classified filters sent on the wire and a parsed opportunity from the API.
  *
  * Run with: `pnpm example:filters`
  *
@@ -37,6 +37,7 @@ import { z } from "zod";
 import { Auth, type SearchResult } from "@common-grants/sdk/client";
 import { F } from "@common-grants/sdk/extensions";
 import plugin from "../src/index";
+import { runSearchScenario } from "./search-with-filters-output";
 
 const BASE_URL = process.env.SGG_BASE_URL ?? "https://api.simpler.grants.gov";
 const API_KEY = process.env.SGG_API_KEY;
@@ -70,12 +71,6 @@ const client = plugin.getClient({
 /** A parsed opportunity, with the plugin's Grants.gov custom fields typed. */
 type Opportunity = z.infer<typeof plugin.schemas.Opportunity.commonSchema>;
 
-/** Collapse a (possibly multi-line) message to one readable line. */
-function oneLine(message: string, max = 160): string {
-  const collapsed = message.replace(/\s+/g, " ").trim();
-  return collapsed.length > max ? `${collapsed.slice(0, max)}...` : collapsed;
-}
-
 /**
  * Print an opportunity's title and id, then the Grants.gov custom-field values
  * beneath it. Member access is typed and enforced by the plugin's bound schema
@@ -96,89 +91,89 @@ function logOpportunity(opp: Opportunity): void {
  * at the call site (in `main`). Each scenario is isolated: a thrown FilterError
  * (bad local value) or an HTTP error is caught here so the rest still run.
  */
-async function run(label: string, search: () => Promise<SearchResult<Opportunity>>): Promise<void> {
-  console.log(`\n=== ${label} ===`);
-  try {
-    const result = await search();
-    console.log(
-      `  total matches:           ${result.paginationInfo.totalItems ?? "(not reported)"}`
-    );
-    console.log(`  items returned (page 1): ${result.items.length}`);
-    console.log(`  per-row parse failures:  ${result.errors.length}`);
-    // The server echoes the filters it applied; confirms the custom filters
-    // reached the wire and were understood by the live API.
-    console.log(`  filterInfo echoed by API: ${JSON.stringify(result.filterInfo?.filters)}`);
-    const first = result.items[0];
-    if (first) logOpportunity(first);
-  } catch (e) {
-    console.log(`  ERROR: ${oneLine((e as Error).message)}`);
-  }
+async function run(
+  label: string,
+  search: () => Promise<SearchResult<Opportunity>>
+): Promise<boolean> {
+  return runSearchScenario(label, search, logOpportunity);
 }
 
-async function main(): Promise<void> {
+async function main(): Promise<boolean> {
   console.log(`Base URL: ${BASE_URL}`);
   console.log(
     `Registered custom filters: ${Object.keys(
       plugin.routes?.opportunities?.search?.filters ?? {}
     ).join(", ")}`
   );
+  let ok = true;
 
   // Baseline: no custom filters, just open opportunities. `status` is a default
   // filter (top-level bucket); pass it through `filters` — the old `statuses`
   // shorthand is deprecated. `run` logs the first result's custom fields, so this
   // also confirms the plugin parsed them out of the live response.
-  await run("Baseline (open opportunities, no custom filters)", () =>
-    client.opportunities.search({ filters: { status: F.in(["open"]) }, page: 1 })
-  );
+  ok =
+    (await run("Baseline (open opportunities, no custom filters)", () =>
+      client.opportunities.search({ filters: { status: F.in(["open"]) }, page: 1 })
+    )) && ok;
 
   // Each registered custom filter, one at a time. Inside each call, the filter
   // key autocompletes and its value shape is narrowed to the declared
   // `filterType` — `agency` accepts an array operator, `costSharing` a boolean.
   // Adjust the codes to ones the live API recognizes; the point here is that the
   // filter is registered, typed, and accepted end to end.
-  await run("agency (stringArray)", () =>
-    client.opportunities.search({
-      filters: { status: F.in(["open"]), agency: F.in(["NSF"]) },
-      page: 1,
-    })
-  );
+  ok =
+    (await run("agency (stringArray)", () =>
+      client.opportunities.search({
+        filters: { status: F.in(["open"]), agency: F.in(["NSF"]) },
+        page: 1,
+      })
+    )) && ok;
 
-  await run("applicantType (stringArray)", () =>
-    client.opportunities.search({
-      filters: { status: F.in(["open"]), applicantType: F.in(["state_governments"]) },
-      page: 1,
-    })
-  );
+  ok =
+    (await run("applicantType (stringArray)", () =>
+      client.opportunities.search({
+        filters: { status: F.in(["open"]), applicantType: F.in(["state_governments"]) },
+        page: 1,
+      })
+    )) && ok;
 
-  await run("fundingInstrument (stringArray)", () =>
-    client.opportunities.search({
-      filters: { status: F.in(["open"]), fundingInstrument: F.in(["grant"]) },
-      page: 1,
-    })
-  );
+  ok =
+    (await run("fundingInstrument (stringArray)", () =>
+      client.opportunities.search({
+        filters: { status: F.in(["open"]), fundingInstrument: F.in(["grant"]) },
+        page: 1,
+      })
+    )) && ok;
 
-  await run("costSharing (booleanComparison)", () =>
-    client.opportunities.search({
-      filters: { status: F.in(["open"]), costSharing: F.eq(false) },
-      page: 1,
-    })
-  );
+  ok =
+    (await run("costSharing (booleanComparison)", () =>
+      client.opportunities.search({
+        filters: { status: F.in(["open"]), costSharing: F.eq(false) },
+        page: 1,
+      })
+    )) && ok;
 
   // All four together, to confirm they compose in a single request.
-  await run("all four filters combined", () =>
-    client.opportunities.search({
-      filters: {
-        status: F.in(["open"]),
-        agency: F.in(["USAID"]),
-        applicantType: F.in(["state_governments"]),
-        fundingInstrument: F.in(["grant"]),
-        costSharing: F.eq(false),
-      },
-      page: 1,
-    })
-  );
+  ok =
+    (await run("all four filters combined", () =>
+      client.opportunities.search({
+        filters: {
+          status: F.in(["open"]),
+          agency: F.in(["USAID"]),
+          applicantType: F.in(["state_governments"]),
+          fundingInstrument: F.in(["grant"]),
+          costSharing: F.eq(false),
+        },
+        page: 1,
+      })
+    )) && ok;
 
+  if (!ok) {
+    console.error("\n✗ search-with-filters example failed");
+    return false;
+  }
   console.log("\n✓ search-with-filters example complete");
+  return true;
 }
 
 // ############################################################################
@@ -204,7 +199,11 @@ async function _typeEnforcementDemos(): Promise<void> {
 }
 void _typeEnforcementDemos; // referenced so it type-checks, never invoked
 
-void main().catch(e => {
-  console.error(e);
-  process.exit(1);
-});
+void main()
+  .then(ok => {
+    if (!ok) process.exitCode = 1;
+  })
+  .catch(e => {
+    console.error(e);
+    process.exit(1);
+  });
