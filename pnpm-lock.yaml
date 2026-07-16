@@ -12,8 +12,8 @@ importers:
   .:
     devDependencies:
       '@common-grants/sdk':
-        specifier: ^0.5.0
-        version: 0.5.0
+        specifier: ^0.6.0
+        version: 0.6.0
       '@eslint/js':
         specifier: ^10.0.1
         version: 10.0.1(eslint@10.5.0)
@@ -71,8 +71,8 @@ packages:
     resolution: {integrity: sha512-6zABk/ECA/QYSCQ1NGiVwwbQerUCZ+TQbp64Q3AgmfNvurHH0j8TtXa1qbShXA6qqkpAj4V5W8pP6mLe1mcMqA==}
     engines: {node: '>=18'}
 
-  '@common-grants/sdk@0.5.0':
-    resolution: {integrity: sha512-91/MsRcnoWBfPnw44r8qRWHMohNswJ0HWWnJ/luMosXT4XEcvp7ddchPEZkxfghB51HV6DThoOGRpk1b4JGiog==}
+  '@common-grants/sdk@0.6.0':
+    resolution: {integrity: sha512-3+GppPE0EF83YHiVPND6TaAS9jRtS+fpDcjg6jA9/nZWf/KoVmguPyPnoTNvAAa4coQJOdd1lFLXUUXAuKkxnQ==}
     engines: {node: '>=22.0.0'}
 
   '@emnapi/core@1.10.0':
@@ -987,7 +987,7 @@ snapshots:
 
   '@bcoe/v8-coverage@1.0.2': {}
 
-  '@common-grants/sdk@0.5.0':
+  '@common-grants/sdk@0.6.0':
     dependencies:
       zod: 3.25.76
 
