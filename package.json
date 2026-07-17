@@ -38,7 +38,8 @@
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "ci": "pnpm run checks && pnpm run build && pnpm run test && pnpm audit",
-    "example:parse": "pnpm dlx tsx examples/parse-opportunity.ts"
+    "example:parse": "pnpm dlx tsx examples/parse-opportunity.ts",
+    "example:filters": "pnpm dlx tsx examples/search-with-filters.ts"
   },
   "exports": {
     ".": {
@@ -47,7 +48,7 @@
     }
   },
   "peerDependencies": {
-    "@common-grants/sdk": "^0.5.0"
+    "@common-grants/sdk": "^0.6.0"
   },
   "pnpm": {
     "overrides": {
@@ -55,8 +56,9 @@
     }
   },
   "devDependencies": {
-    "@common-grants/sdk": "^0.5.0",
+    "@common-grants/sdk": "^0.6.0",
     "@eslint/js": "^10.0.1",
+    "@types/node": "^22.20.1",
     "@vitest/coverage-v8": "^4.1.9",
     "eslint": "^10.5.0",
     "eslint-config-prettier": "^10.1.8",

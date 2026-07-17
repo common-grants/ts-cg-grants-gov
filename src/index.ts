@@ -126,7 +126,7 @@ const plugin = definePlugin({
   meta: {
     name: "grants.gov",
     sourceSystem: "Simpler.Grants.gov",
-    capabilities: ["customFields", "transforms"],
+    capabilities: ["customFields", "transforms", "customFilters"],
   },
   schemas: {
     Opportunity: {
@@ -136,6 +136,20 @@ const plugin = definePlugin({
       fromCommon,
     },
   },
+  // Custom filters the Simpler.Grants.gov search accepts. `as const` preserves
+  // the filterType literals so search({ filters }) narrows each key.
+  routes: {
+    opportunities: {
+      search: {
+        filters: {
+          agency: { filterType: "stringArray" },
+          applicantType: { filterType: "stringArray" },
+          fundingInstrument: { filterType: "stringArray" },
+          costSharing: { filterType: "booleanComparison" },
+        },
+      },
+    },
+  } as const,
 });
 
 export default plugin;
