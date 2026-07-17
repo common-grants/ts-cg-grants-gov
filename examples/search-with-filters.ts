@@ -37,7 +37,6 @@ import { z } from "zod";
 import { Auth, type SearchResult } from "@common-grants/sdk/client";
 import { F } from "@common-grants/sdk/extensions";
 import plugin from "../src/index";
-import { runSearchScenario } from "./search-with-filters-output";
 
 const BASE_URL = process.env.SGG_BASE_URL ?? "https://api.simpler.grants.gov";
 const API_KEY = process.env.SGG_API_KEY;
@@ -86,6 +85,11 @@ function logOpportunity(opp: Opportunity): void {
   console.log(`    assistanceListings: ${cf?.assistanceListings?.value?.length ?? 0}`);
 }
 
+function oneLine(message: string): string {
+  const collapsed = message.replace(/\s+/g, " ").trim();
+  return collapsed.length > 160 ? `${collapsed.slice(0, 160)}...` : collapsed;
+}
+
 /**
  * Run one inline search and print the outcome. The typed `search()` call lives
  * at the call site (in `main`). Each scenario is isolated: a thrown FilterError
@@ -95,7 +99,22 @@ async function run(
   label: string,
   search: () => Promise<SearchResult<Opportunity>>
 ): Promise<boolean> {
-  return runSearchScenario(label, search, logOpportunity);
+  console.log(`\n=== ${label} ===`);
+  try {
+    const result = await search();
+    console.log(
+      `  total matches:           ${result.paginationInfo.totalItems ?? "(not reported)"}`
+    );
+    console.log(`  items returned (page 1): ${result.items.length}`);
+    console.log(`  per-row parse failures:  ${result.errors.length}`);
+    console.log(`  filters sent:             ${JSON.stringify(result.filterInfo?.filters)}`);
+    const first = result.items[0];
+    if (first) logOpportunity(first);
+    return true;
+  } catch (error) {
+    console.log(`  ERROR: ${oneLine((error as Error).message)}`);
+    return false;
+  }
 }
 
 async function main(): Promise<boolean> {
