@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0](https://github.com/common-grants/ts-cg-grants-gov/compare/v0.2.0...v0.3.0) (2026-07-17)
+
+
+### Features
+
+* register Simpler.Grants.gov custom filters on opportunities.search ([#18](https://github.com/common-grants/ts-cg-grants-gov/issues/18)) ([2c575e9](https://github.com/common-grants/ts-cg-grants-gov/commit/2c575e9c5959127e6d2ac3b616f87aaa00a10cce))
+
 ## [0.2.0](https://github.com/common-grants/ts-cg-grants-gov/compare/v0.1.0...v0.2.0) (2026-06-24)
 
 
