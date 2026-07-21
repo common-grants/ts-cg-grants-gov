@@ -8,6 +8,7 @@ A [CommonGrants](https://github.com/common-grants) plugin that defines Grants.go
 - [Installation](#installation)
 - [Usage](#usage)
   - [Parsing API responses](#parsing-api-responses)
+  - [Searching with custom filters](#searching-with-custom-filters)
   - [Using transforms](#using-transforms)
   - [Combining with other plugins](#combining-with-other-plugins)
   - [Available custom fields](#available-custom-fields)
@@ -66,6 +67,59 @@ const results = await client.opportunities.search({
   query: "education",
   schema,
 });
+```
+
+### Searching with custom filters
+
+The plugin registers Simpler.Grants.gov search filters on `opportunities.search`. Call `plugin.getClient()` to get a client that binds both the plugin's Opportunity schema and these custom-filter routes, so filter names autocomplete and each value is narrowed to its declared filter family.
+
+Four filters are registered:
+
+| Filter              | Filter family       |
+| ------------------- | ------------------- |
+| `agency`            | `stringArray`       |
+| `applicantType`     | `stringArray`       |
+| `fundingInstrument` | `stringArray`       |
+| `costSharing`       | `booleanComparison` |
+
+Build filter values with the `F.*` helpers: use `F.in([...])` for the `stringArray` filters and `F.eq(true | false)` for `costSharing`.
+
+```ts
+import { Auth } from "@common-grants/sdk/client";
+import { F } from "@common-grants/sdk/extensions";
+import grantsGovPlugin from "@common-grants/cg-grants-gov";
+
+// getClient binds the plugin's Opportunity schema and its registered filter routes.
+const client = grantsGovPlugin.getClient({
+  baseUrl: "https://api.simpler.grants.gov",
+  auth: Auth.apiKey("your-api-key"),
+});
+
+const results = await client.opportunities.search({
+  filters: {
+    status: F.in(["open"]),
+    agency: F.in(["HHS"]),
+    applicantType: F.in(["state_governments"]),
+    fundingInstrument: F.in(["grant"]),
+    costSharing: F.eq(false),
+  },
+  page: 1,
+});
+
+// Custom fields on each result are typed by the plugin's bound schema.
+console.log(results.items[0]?.customFields?.agency?.value.name);
+```
+
+An invalid value for a registered filter (for example, an array operator on `costSharing`) is a compile-time error, and it is also rejected at runtime with a `FilterError` before any request is sent.
+
+For a runnable version against the live API, see [`examples/search-with-filters.ts`](./examples/search-with-filters.ts). It calls the live Simpler.Grants.gov API, so it requires an API key:
+
+- `SGG_API_KEY` (required): your Simpler.Grants.gov API key.
+- `SGG_BASE_URL` (optional): defaults to the production API (`https://api.simpler.grants.gov`).
+
+```bash
+export SGG_API_KEY="your-api-key"
+pnpm example:filters
 ```
 
 ### Using transforms
@@ -185,16 +239,17 @@ For value object shapes, source field mappings, and status/applicant-type conver
 
 ## Plugin anatomy
 
-The plugin is assembled in `src/index.ts` using four components:
+The plugin is assembled in `src/index.ts` using these components:
 
-| Component                    | What it is                                                           | File            |
-| ---------------------------- | -------------------------------------------------------------------- | --------------- |
-| `GrantsGovOpportunitySchema` | Zod schema for the Simpler.Grants.gov v1 API response                | `schemas.ts`    |
-| `customFields`               | `CustomFieldSpec` declarations for all 18 Grants.gov-specific fields | `index.ts`      |
-| `toCommon`                   | Transforms `GrantsGovOpportunity → CommonGrants Opportunity`         | `transforms.ts` |
-| `fromCommon`                 | Transforms `CommonGrants Opportunity → GrantsGovOpportunity`         | `transforms.ts` |
+| Component                    | What it is                                                                                                                    | File            |
+| ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------- | --------------- |
+| `GrantsGovOpportunitySchema` | Zod schema for the Simpler.Grants.gov v1 API response                                                                         | `schemas.ts`    |
+| `customFields`               | `CustomFieldSpec` declarations for all 18 Grants.gov-specific fields                                                          | `index.ts`      |
+| `toCommon`                   | Transforms `GrantsGovOpportunity → CommonGrants Opportunity`                                                                  | `transforms.ts` |
+| `fromCommon`                 | Transforms `CommonGrants Opportunity → GrantsGovOpportunity`                                                                  | `transforms.ts` |
+| `routes`                     | Custom search-filter registrations for `opportunities.search` (`agency`, `applicantType`, `fundingInstrument`, `costSharing`) | `index.ts`      |
 
-These are wired together via `definePlugin`:
+These are wired together via `definePlugin`. The `customFilters` capability advertises the registered filters, and the `routes` block declares them (see [Searching with custom filters](#searching-with-custom-filters)):
 
 ```ts
 import { definePlugin } from "@common-grants/sdk/extensions";
@@ -203,7 +258,7 @@ const plugin = definePlugin({
   meta: {
     name: "grants.gov",
     sourceSystem: "Simpler.Grants.gov",
-    capabilities: ["customFields", "transforms"],
+    capabilities: ["customFields", "transforms", "customFilters"],
   },
   schemas: {
     Opportunity: {
@@ -213,6 +268,20 @@ const plugin = definePlugin({
       fromCommon, // (common: unknown) => TransformResult<GrantsGovOpportunity>
     },
   },
+  // Custom search filters accepted by opportunities.search. `as const` preserves
+  // the filterType literals so search({ filters }) narrows each key.
+  routes: {
+    opportunities: {
+      search: {
+        filters: {
+          agency: { filterType: "stringArray" },
+          applicantType: { filterType: "stringArray" },
+          fundingInstrument: { filterType: "stringArray" },
+          costSharing: { filterType: "booleanComparison" },
+        },
+      },
+    },
+  } as const,
 });
 ```
 
