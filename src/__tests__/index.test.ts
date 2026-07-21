@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import plugin from "../index";
+import plugin from "../index.js";
 
 // =============================================================================
 // Test Data

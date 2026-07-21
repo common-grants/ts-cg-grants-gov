@@ -8,8 +8,8 @@ import {
   AdditionalInfoValueSchema,
   CostSharingValueSchema,
   GrantsGovOpportunitySchema,
-} from "./schemas";
-import { toCommon, fromCommon } from "./transforms";
+} from "./schemas.js";
+import { toCommon, fromCommon } from "./transforms.js";
 
 // =============================================================================
 // Custom Field Specs
@@ -153,7 +153,7 @@ const plugin = definePlugin({
 });
 
 export default plugin;
-export type { GrantsGovOpportunity } from "./schemas";
+export type { GrantsGovOpportunity } from "./schemas.js";
 export {
   AssistanceListingValueSchema,
   AgencyValueSchema,
@@ -162,4 +162,4 @@ export {
   AdditionalInfoValueSchema,
   CostSharingValueSchema,
   GrantsGovOpportunitySchema,
-} from "./schemas";
+} from "./schemas.js";
