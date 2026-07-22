@@ -47,6 +47,9 @@
       "default": "./dist/index.js"
     }
   },
+  "dependencies": {
+    "zod": "^3.25.76"
+  },
   "peerDependencies": {
     "@common-grants/sdk": "^0.6.0"
   },
@@ -66,7 +69,6 @@
     "prettier": "^3.8.1",
     "typescript": "^5.0.0",
     "typescript-eslint": "^8.58.0",
-    "vitest": "^4.1.9",
-    "zod": "^3.25.0"
+    "vitest": "^4.1.9"
   }
 }
