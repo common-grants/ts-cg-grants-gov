@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.3.1](https://github.com/common-grants/ts-cg-grants-gov/compare/v0.3.0...v0.3.1) (2026-07-23)
+
+
+### Bug Fixes
+
+* declare zod as a runtime dependency ([#24](https://github.com/common-grants/ts-cg-grants-gov/issues/24)) ([8f108a2](https://github.com/common-grants/ts-cg-grants-gov/commit/8f108a2b8176cf63c89148b8d43bb3e8a8d239d0))
+* make published package importable in Node ([#22](https://github.com/common-grants/ts-cg-grants-gov/issues/22)) ([9438763](https://github.com/common-grants/ts-cg-grants-gov/commit/943876395f4323897657f549e8f021fc3f66512f))
+
 ## [0.3.0](https://github.com/common-grants/ts-cg-grants-gov/compare/v0.2.0...v0.3.0) (2026-07-17)
 
 
