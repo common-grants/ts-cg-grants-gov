@@ -2,6 +2,7 @@
   "name": "@common-grants/cg-grants-gov",
   "description": "A CommonGrants adapter library for the Simpler.Grants.gov API",
   "version": "0.3.0",
+  "type": "module",
   "license": "CC0-1.0",
   "repository": {
     "type": "git",
@@ -36,8 +37,9 @@
     "check:types": "tsc --noEmit",
     "checks": "pnpm run check:lint && pnpm run check:format && pnpm run check:types",
     "test": "vitest run",
+    "test:package": "node scripts/smoke-package.mjs",
     "test:coverage": "vitest run --coverage",
-    "ci": "pnpm run checks && pnpm run build && pnpm run test && pnpm audit",
+    "ci": "pnpm run checks && pnpm run build && pnpm run test && pnpm run test:package && pnpm audit",
     "example:parse": "pnpm dlx tsx examples/parse-opportunity.ts",
     "example:filters": "pnpm dlx tsx examples/search-with-filters.ts"
   },

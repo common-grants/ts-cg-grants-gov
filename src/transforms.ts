@@ -1,5 +1,5 @@
 import type { TransformResult } from "@common-grants/sdk/extensions";
-import type { GrantsGovOpportunity } from "./schemas";
+import type { GrantsGovOpportunity } from "./schemas.js";
 
 // =============================================================================
 // Status mappings

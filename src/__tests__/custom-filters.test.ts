@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { Auth } from "@common-grants/sdk/client";
 import { F, FilterError, type CustomFilterInput } from "@common-grants/sdk/extensions";
-import plugin from "../index";
+import plugin from "../index.js";
 
 // The SGG search custom filters the plugin registers (#903), aligned with the
 // filters the Simpler.Grants.gov API accepts (#944).
