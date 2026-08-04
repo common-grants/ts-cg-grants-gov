@@ -31,4 +31,8 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      - run: pnpm run ci
+      # Audit is intentionally not part of this job: new advisories against
+      # deps already on main would red every open PR. Dep-changing PRs are
+      # audited by audit.yml (path-scoped); everything else is covered by its
+      # daily scheduled sweep. `pnpm run ci` locally still includes the audit.
+      - run: pnpm run ci:code
