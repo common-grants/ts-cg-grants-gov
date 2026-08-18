@@ -1,0 +1,73 @@
+name: Dependency Audit
+
+# Runs `pnpm audit` in two situations:
+#   1. PRs that change dependencies — so a PR can't introduce a known advisory.
+#   2. A daily scheduled sweep on main — so advisories published against deps
+#      already on main are caught within a day (as a tracking issue) instead of
+#      redding every open PR the moment a GHSA drops.
+on:
+  pull_request:
+    paths:
+      - package.json
+      - pnpm-lock.yaml
+      - pnpm-workspace.yaml
+      - .github/workflows/audit.yml
+  schedule:
+    # Daily at 15:00 UTC (8am PDT / 7am PST)
+    - cron: "0 15 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+# Serialize runs so the list-then-file below can't race itself: a manual
+# dispatch on top of the scheduled run would otherwise let both see no open
+# issue and file one each. Queue rather than cancel.
+concurrency:
+  group: audit
+  cancel-in-progress: false
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: pnpm/action-setup@v5
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: "pnpm"
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm audit
+        id: dependency-audit
+
+      - name: Open tracking issue on scheduled failure
+        # Gated on the audit step's outcome, not failure(): a checkout, setup
+        # or install failure would otherwise file an issue claiming advisories
+        # were found when the audit never ran. Those surface through the
+        # scheduled-run failure notification instead. !cancelled() is required
+        # because Actions applies a default success() to any if without a
+        # status function, which would never be true here.
+        if: ${{ !cancelled() && steps.dependency-audit.outcome == 'failure' && github.event_name != 'pull_request' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          # Look up the tracking issue by label over REST rather than
+          # `gh issue list`, which routes through GitHub's issue search index
+          # for --search and --label alike. Two runs close together can both
+          # miss a just-filed issue there and open a duplicate. REST reads
+          # through, and returns PRs alongside issues, hence the filter.
+          EXISTING=$(gh api "repos/$GITHUB_REPOSITORY/issues?state=open&labels=audit-sweep" \
+            --jq '[.[] | select(.pull_request == null)] | .[0].number // empty')
+          if [ -n "$EXISTING" ]; then
+            gh issue comment "$EXISTING" --body "Still failing: $RUN_URL"
+          else
+            gh issue create --title "Scheduled dependency audit is failing" --label audit-sweep \
+              --body "The scheduled \`pnpm audit\` sweep found advisories against deps on \`main\`. See the run log for details: $RUN_URL"
+          fi

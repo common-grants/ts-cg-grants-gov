@@ -19,18 +19,25 @@ Guide for maintainers and contributors working on this package.
 
 ## Commands
 
-| Command              | Description                                        |
-| -------------------- | -------------------------------------------------- |
-| `pnpm build`         | Compile TypeScript to `dist/`                      |
-| `pnpm lint`          | Lint and auto-fix with ESLint                      |
-| `pnpm format`        | Format and auto-fix with Prettier                  |
-| `pnpm check:lint`    | Lint without fixing (CI-safe)                      |
-| `pnpm check:format`  | Check formatting without fixing (CI-safe)          |
-| `pnpm check:types`   | Type-check with `tsc --noEmit`                     |
-| `pnpm checks`        | Run all `check:*` scripts                          |
-| `pnpm test`          | Run tests with Vitest                              |
-| `pnpm test:coverage` | Run tests with coverage report                     |
-| `pnpm ci`            | Run checks, build, and tests (mirrors CI pipeline) |
+| Command              | Description                                    |
+| -------------------- | ---------------------------------------------- |
+| `pnpm build`         | Compile TypeScript to `dist/`                  |
+| `pnpm lint`          | Lint and auto-fix with ESLint                  |
+| `pnpm format`        | Format and auto-fix with Prettier              |
+| `pnpm check:lint`    | Lint without fixing (CI-safe)                  |
+| `pnpm check:format`  | Check formatting without fixing (CI-safe)      |
+| `pnpm check:types`   | Type-check with `tsc --noEmit`                 |
+| `pnpm checks`        | Run all `check:*` scripts                      |
+| `pnpm test`          | Run tests with Vitest                          |
+| `pnpm test:coverage` | Run tests with coverage report                 |
+| `pnpm ci:code`       | Checks, build, and tests (what CI runs per PR) |
+| `pnpm ci`            | `ci:code` plus `pnpm audit`                    |
+
+## Dependency audits
+
+`pnpm audit` runs on PRs that change dependencies and on a daily sweep of `main` (`audit.yml`). The per-PR `ci` job skips it so a newly published advisory against a dep already on `main` can't fail every open PR. A failing sweep opens an issue labeled `audit-sweep`; nothing closes it automatically.
+
+When an advisory has no patched version anywhere, suppress it in `package.json` under `pnpm.auditConfig.ignoreGhsas`, and only alongside a tracking issue that links an upstream issue for the fix and covers removing the entry once it ships.
 
 ## Releasing
 
