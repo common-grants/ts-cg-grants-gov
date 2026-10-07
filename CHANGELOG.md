@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.2](https://github.com/common-grants/ts-cg-grants-gov/compare/v0.3.1...v0.3.2) (2026-10-07)
+
+
+### Bug Fixes
+
+* bump nanoid to 3.3.18 for GHSA-2v37-7h3g-55p8 ([#31](https://github.com/common-grants/ts-cg-grants-gov/issues/31)) ([c9d15ef](https://github.com/common-grants/ts-cg-grants-gov/commit/c9d15ef106cd664e59f6edd36438772f95ce35fe))
+
 ## [0.3.1](https://github.com/common-grants/ts-cg-grants-gov/compare/v0.3.0...v0.3.1) (2026-08-04)
 
 
