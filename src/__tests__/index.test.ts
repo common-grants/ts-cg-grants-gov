@@ -793,6 +793,17 @@ describe("Grants.gov plugin", () => {
       const result = GrantsGovOpportunitySchema.safeParse({
         ...source,
         opportunity_id: "00000000-0000-0000-0000-000000000001",
+        attachments: [
+          {
+            opportunity_attachment_id: "00000000-0000-0000-0000-000000000001",
+            mime_type: "application/pdf",
+            file_name: "NOFO.pdf",
+            file_description: "Notice of Funding Opportunity",
+            download_url: "https://example.com/nofo.pdf",
+            created_at: "2025-01-01T00:00:00Z",
+            updated_at: "2025-01-10T00:00:00Z",
+          },
+        ],
       });
 
       expect(result.success).toBe(true);

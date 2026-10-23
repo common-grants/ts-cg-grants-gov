@@ -315,7 +315,7 @@ Use Zod to describe your source system's data shape:
 import { z } from "zod";
 
 export const MySourceOpportunitySchema = z.object({
-  id: z.uuid(),
+  id: z.uuid(), // use z.guid() for IDs that may not carry RFC 9562 version bits
   title: z.string().nullish(),
   status: z.enum(["open", "closed"]),
   description: z.string().nullish(),
