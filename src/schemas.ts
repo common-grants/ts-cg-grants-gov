@@ -22,8 +22,8 @@ export const AttachmentValueSchema = z.object({
   description: z.string().nullish(),
   sizeInBytes: z.number().int().nullish(),
   mimeType: z.string().nullish(),
-  createdAt: z.string().datetime(),
-  lastModifiedAt: z.string().datetime(),
+  createdAt: z.iso.datetime(),
+  lastModifiedAt: z.iso.datetime(),
 });
 
 export const ContactInfoValueSchema = z.object({
@@ -73,22 +73,22 @@ export const OpportunitySummarySourceSchema = z.object({
   funding_instruments: z.array(z.string()).default([]),
   funding_categories: z.array(z.string()).default([]),
   applicant_types: z.array(z.string()).default([]),
-  created_at: z.string().datetime({ offset: true, precision: 6 }),
-  updated_at: z.string().datetime({ offset: true, precision: 6 }),
+  created_at: z.iso.datetime({ offset: true, precision: 6 }),
+  updated_at: z.iso.datetime({ offset: true, precision: 6 }),
 });
 
 export const OpportunityAttachmentSourceSchema = z.object({
-  opportunity_attachment_id: z.string().uuid().nullish(),
+  opportunity_attachment_id: z.guid().nullish(),
   mime_type: z.string().nullish(),
   file_name: z.string().nullish(),
   file_description: z.string().nullish(),
   download_url: z.string().nullish(),
-  created_at: z.string().datetime().nullish(),
-  updated_at: z.string().datetime().nullish(),
+  created_at: z.iso.datetime().nullish(),
+  updated_at: z.iso.datetime().nullish(),
 });
 
 export const GrantsGovOpportunitySchema = z.object({
-  opportunity_id: z.string().uuid(),
+  opportunity_id: z.guid(),
   legacy_opportunity_id: z.number().int().nullish(),
   opportunity_number: z.string().nullish(),
   opportunity_title: z.string().nullish(),
@@ -101,8 +101,8 @@ export const GrantsGovOpportunitySchema = z.object({
   summary: OpportunitySummarySourceSchema.nullish(),
   opportunity_status: z.enum(["forecasted", "posted", "closed", "archived"]),
   attachments: z.array(OpportunityAttachmentSourceSchema).nullish(),
-  created_at: z.string().datetime({ offset: true, precision: 6 }),
-  updated_at: z.string().datetime({ offset: true, precision: 6 }),
+  created_at: z.iso.datetime({ offset: true, precision: 6 }),
+  updated_at: z.iso.datetime({ offset: true, precision: 6 }),
 });
 
 export type GrantsGovOpportunity = z.infer<typeof GrantsGovOpportunitySchema>;

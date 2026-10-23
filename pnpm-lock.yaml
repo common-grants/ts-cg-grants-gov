@@ -4,20 +4,17 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
-overrides:
-  zod: 3.25.76
-
 importers:
 
   .:
     dependencies:
       zod:
-        specifier: 3.25.76
-        version: 3.25.76
+        specifier: ^4.5.0
+        version: 4.6.7
     devDependencies:
       '@common-grants/sdk':
-        specifier: ^0.6.0
-        version: 0.6.0
+        specifier: ^0.9.0
+        version: 0.9.0
       '@eslint/js':
         specifier: ^10.0.1
         version: 10.0.1(eslint@10.5.0)
@@ -72,8 +69,8 @@ packages:
     resolution: {integrity: sha512-6zABk/ECA/QYSCQ1NGiVwwbQerUCZ+TQbp64Q3AgmfNvurHH0j8TtXa1qbShXA6qqkpAj4V5W8pP6mLe1mcMqA==}
     engines: {node: '>=18'}
 
-  '@common-grants/sdk@0.6.0':
-    resolution: {integrity: sha512-3+GppPE0EF83YHiVPND6TaAS9jRtS+fpDcjg6jA9/nZWf/KoVmguPyPnoTNvAAa4coQJOdd1lFLXUUXAuKkxnQ==}
+  '@common-grants/sdk@0.9.0':
+    resolution: {integrity: sha512-RK3TV34nY7FnyV05wJaQuFrByFBRNg52zrQ1DDd/XzUUgHQLqkNiB6EDl/7ne0lMcoOufmSZokuDCwVWL4nDXA==}
     engines: {node: '>=22.0.0'}
 
   '@emnapi/core@1.10.0':
@@ -973,8 +970,8 @@ packages:
     resolution: {integrity: sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q==}
     engines: {node: '>=10'}
 
-  zod@3.25.76:
-    resolution: {integrity: sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ==}
+  zod@4.6.7:
+    resolution: {integrity: sha512-g8W2D2kU6a8untc053fX1uVBKzM7yqAxW/3zwk83+6RyF2+SKOuV+c0wBDhUwzV1PaGapmZH+rmcUzPf+3CGwg==}
 
 snapshots:
 
@@ -993,9 +990,9 @@ snapshots:
 
   '@bcoe/v8-coverage@1.0.2': {}
 
-  '@common-grants/sdk@0.6.0':
+  '@common-grants/sdk@0.9.0':
     dependencies:
-      zod: 3.25.76
+      zod: 4.6.7
 
   '@emnapi/core@1.10.0':
     dependencies:
@@ -1781,4 +1778,4 @@ snapshots:
 
   yocto-queue@0.1.0: {}
 
-  zod@3.25.76: {}
+  zod@4.6.7: {}

@@ -210,8 +210,8 @@ z.object({
   description: z.string().nullish(), // source: file_description
   sizeInBytes: z.number().int().nullish(),
   mimeType: z.string().nullish(),
-  createdAt: z.string().datetime(), // source: attachment.created_at ?? opportunity.created_at
-  lastModifiedAt: z.string().datetime(), // source: attachment.updated_at ?? opportunity.updated_at
+  createdAt: z.iso.datetime(), // source: attachment.created_at ?? opportunity.created_at
+  lastModifiedAt: z.iso.datetime(), // source: attachment.updated_at ?? opportunity.updated_at
 });
 ```
 
@@ -315,13 +315,13 @@ Use Zod to describe your source system's data shape:
 import { z } from "zod";
 
 export const MySourceOpportunitySchema = z.object({
-  id: z.string().uuid(),
+  id: z.uuid(),
   title: z.string().nullish(),
   status: z.enum(["open", "closed"]),
   description: z.string().nullish(),
   max_award: z.number().int().nullish(),
-  created_at: z.string().datetime({ offset: true }),
-  updated_at: z.string().datetime({ offset: true }),
+  created_at: z.iso.datetime({ offset: true }),
+  updated_at: z.iso.datetime({ offset: true }),
 });
 
 export type MySourceOpportunity = z.infer<typeof MySourceOpportunitySchema>;
