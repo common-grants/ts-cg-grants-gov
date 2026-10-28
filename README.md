@@ -37,6 +37,14 @@ pnpm add @common-grants/cg-grants-gov @common-grants/sdk
 > [!NOTE]
 > `@common-grants/sdk` is a peer dependency. You must install it separately.
 
+### Compatibility
+
+| Dependency           | Supported range   | Notes                                                                            |
+| -------------------- | ----------------- | -------------------------------------------------------------------------------- |
+| `@common-grants/sdk` | `>=0.7.0 <0.10.0` | Peer dependency. SDK 0.6.x and earlier are not supported.                        |
+| `zod`                | `^4.5.0`          | Installed with this plugin; shares the SDK's Zod 4 copy. Zod 3 is not supported. |
+| Node.js              | `>=22`            | Required by `@common-grants/sdk` 0.9. Both packages are ESM-only.                |
+
 ## Usage
 
 ### Parsing API responses

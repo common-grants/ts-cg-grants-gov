@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import plugin from "../index.js";
+import plugin, { GrantsGovOpportunitySchema } from "../index.js";
 
 // =============================================================================
 // Test Data
@@ -244,7 +244,7 @@ describe("Grants.gov plugin", () => {
         expect(paths).toContain("customFields.attachments.value.0.lastModifiedAt");
         result.error?.issues.forEach(issue => {
           expect(issue.code).toBe("invalid_type");
-          expect(issue.message).toBe("Required");
+          expect(issue.message).toBe("Invalid input: expected string, received undefined");
         });
       });
 
@@ -264,7 +264,7 @@ describe("Grants.gov plugin", () => {
         const issue = result.error?.issues[0];
         expect(issue?.code).toBe("invalid_type");
         expect(issue?.path).toEqual(["customFields", "agency", "value", "code"]);
-        expect(issue?.message).toBe("Expected string, received number");
+        expect(issue?.message).toBe("Invalid input: expected string, received number");
       });
 
       it("rejects an attachment with an invalid datetime", () => {
@@ -289,9 +289,9 @@ describe("Grants.gov plugin", () => {
 
         expect(result.success).toBe(false);
         const issue = result.error?.issues[0];
-        expect(issue?.code).toBe("invalid_string");
+        expect(issue?.code).toBe("invalid_format");
         expect(issue?.path).toEqual(["customFields", "attachments", "value", 0, "createdAt"]);
-        expect(issue?.message).toBe("Invalid datetime");
+        expect(issue?.message).toBe("Invalid ISO datetime");
       });
 
       it("rejects a cost sharing value with wrong type", () => {
@@ -310,7 +310,7 @@ describe("Grants.gov plugin", () => {
         const issue = result.error?.issues[0];
         expect(issue?.code).toBe("invalid_type");
         expect(issue?.path).toEqual(["customFields", "costSharing", "value", "isRequired"]);
-        expect(issue?.message).toBe("Expected boolean, received string");
+        expect(issue?.message).toBe("Invalid input: expected boolean, received string");
       });
     });
 
@@ -766,6 +766,47 @@ describe("Grants.gov plugin", () => {
         // is_forecast: derived from opportunity_status, not stored independently
         expect(roundTripped.summary!.is_forecast).toBe(false);
       });
+    });
+  });
+
+  // =============================================================================
+  // Source schema
+  // =============================================================================
+
+  describe("source schema", () => {
+    const source = {
+      ...baseGrantsGovOpportunity,
+      summary: {
+        ...baseGrantsGovOpportunity.summary,
+        created_at: "2025-01-01T00:00:00.558102+00:00",
+        updated_at: "2025-01-15T00:00:00.558102+00:00",
+      },
+      created_at: "2025-01-01T00:00:00.558102+00:00",
+      updated_at: "2025-01-15T00:00:00.558102+00:00",
+    };
+
+    it("parses a grants.gov opportunity", () => {
+      expect(GrantsGovOpportunitySchema.safeParse(source).success).toBe(true);
+    });
+
+    it("accepts GUID-shaped ids that are not RFC 9562 UUIDs", () => {
+      const result = GrantsGovOpportunitySchema.safeParse({
+        ...source,
+        opportunity_id: "00000000-0000-0000-0000-000000000001",
+        attachments: [
+          {
+            opportunity_attachment_id: "00000000-0000-0000-0000-000000000001",
+            mime_type: "application/pdf",
+            file_name: "NOFO.pdf",
+            file_description: "Notice of Funding Opportunity",
+            download_url: "https://example.com/nofo.pdf",
+            created_at: "2025-01-01T00:00:00Z",
+            updated_at: "2025-01-10T00:00:00Z",
+          },
+        ],
+      });
+
+      expect(result.success).toBe(true);
     });
   });
 });
