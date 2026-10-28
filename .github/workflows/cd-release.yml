@@ -1,9 +1,18 @@
-name: "CD - Create Release"
+name: "CD - Release"
 
 on:
   push:
     branches:
       - main
+  # Manual republish of an existing release tag. npm trusted publishing checks
+  # the filename of the top-level workflow that ran `pnpm publish`, so manual
+  # retries must run from this file too.
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing release tag to publish (e.g., v0.1.0)"
+        required: true
+        type: string
 
 jobs:
   # Release-please analyzes conventional commit messages since the last release
@@ -12,30 +21,91 @@ jobs:
   #   - An updated CHANGELOG.md
   #
   # When that release PR is merged, release-please creates a git tag and
-  # GitHub Release, then triggers the publish workflow.
+  # GitHub Release, and the publish job below publishes that tag to npm.
   release-please:
     runs-on: ubuntu-latest
     permissions:
       contents: write
       pull-requests: write
     outputs:
-      release_created: ${{ steps.release.outputs.release_created }}
-      tag_name: ${{ steps.release.outputs.tag_name }}
+      publish_tag: ${{ steps.plan.outputs.publish_tag }}
     steps:
+      # Only a push can cut a release. A manual dispatch skips this step and
+      # publishes the tag it was given.
       - uses: googleapis/release-please-action@v4
         id: release
+        if: github.event_name == 'push'
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
 
+      - name: Select tag to publish
+        id: plan
+        env:
+          EVENT: ${{ github.event_name }}
+          DISPATCH_TAG: ${{ inputs.tag }}
+          RELEASE_CREATED: ${{ steps.release.outputs.release_created }}
+          RELEASE_TAG: ${{ steps.release.outputs.tag_name }}
+        run: |
+          if [[ "$EVENT" == "workflow_dispatch" ]]; then
+            tag="$DISPATCH_TAG"
+          elif [[ "$RELEASE_CREATED" == "true" ]]; then
+            tag="$RELEASE_TAG"
+          else
+            tag=""
+          fi
+          echo "Publishing: ${tag:-nothing}"
+          echo "publish_tag=$tag" >> "$GITHUB_OUTPUT"
+
+  # Publishing lives in this workflow, not a reusable one: npm's trusted
+  # publisher is bound to this workflow file plus the `npm` environment, and
+  # GitHub reports the calling workflow's filename in the OIDC token.
   publish:
     needs: release-please
-    if: ${{ needs.release-please.outputs.release_created == 'true' }}
+    if: needs.release-please.outputs.publish_tag != ''
+    runs-on: ubuntu-latest
+    environment:
+      name: npm
+      url: https://www.npmjs.com/package/@common-grants/cg-grants-gov
     permissions:
       contents: read
-      id-token: write
-    uses: ./.github/workflows/cd-publish.yml
-    with:
-      tag: ${{ needs.release-please.outputs.tag_name }}
-    secrets: inherit
+      id-token: write # OIDC token for npm trusted publishing
+    env:
+      RELEASE_TAG: ${{ needs.release-please.outputs.publish_tag }}
+    steps:
+      # A manual dispatch can pass any string; reject anything that is not a
+      # release tag before checkout.
+      - name: Validate release tag
+        run: |
+          if [[ ! "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+([-+][0-9A-Za-z.+-]+)?$ ]]; then
+            echo "::error::tag must look like 'vX.Y.Z'. Got: $RELEASE_TAG"
+            exit 1
+          fi
+
+      # refs/tags/ pins the checkout to the tag namespace; a same-named branch
+      # cannot be substituted.
+      - uses: actions/checkout@v6
+        with:
+          ref: refs/tags/${{ env.RELEASE_TAG }}
+
+      - uses: pnpm/action-setup@v5
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+          cache: "pnpm"
+
+      - run: pnpm install --frozen-lockfile
+
+      # Builds the package
+      # TODO: Change this back to pnpm run ci after initial release
+      - run: pnpm run build
+
+      # pnpm publish shells out to the system npm, which must be >= 11.5.1 for
+      # OIDC trusted publishing; Node 22 bundles an older npm.
+      - run: npm install -g npm@latest
+
+      - name: Publish
+        run: pnpm publish --provenance --access public --no-git-checks
