@@ -196,8 +196,10 @@ export function toCommon(source: GrantsGovOpportunity): TransformResult<unknown>
         name: att.file_name ?? "",
         description: att.file_description,
         mimeType: att.mime_type,
-        createdAt: att.created_at ?? source.created_at,
-        lastModifiedAt: att.updated_at ?? source.updated_at,
+        // Fall back to the opportunity timestamps, normalized to Z-suffixed UTC
+        // (source timestamps carry a +00:00 offset that the schema rejects)
+        createdAt: att.created_at ?? new Date(source.created_at).toISOString(),
+        lastModifiedAt: att.updated_at ?? new Date(source.updated_at).toISOString(),
       })),
     };
   }

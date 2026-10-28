@@ -789,6 +789,20 @@ describe("Grants.gov plugin", () => {
       expect(GrantsGovOpportunitySchema.safeParse(source).success).toBe(true);
     });
 
+    it("falls back to offset-suffixed opportunity timestamps for attachments without them", () => {
+      const parsed = GrantsGovOpportunitySchema.parse({
+        ...source,
+        attachments: [{ file_name: "NOFO.pdf", created_at: null, updated_at: null }],
+      });
+
+      const { result, errors } = toCommon(parsed);
+
+      expect(errors).toHaveLength(0);
+      const att = (result.customFields?.attachments?.value as Record<string, unknown>[])[0];
+      expect(att.createdAt).toBe("2025-01-01T00:00:00.558Z");
+      expect(att.lastModifiedAt).toBe("2025-01-15T00:00:00.558Z");
+    });
+
     it("accepts GUID-shaped ids that are not RFC 9562 UUIDs", () => {
       const result = GrantsGovOpportunitySchema.safeParse({
         ...source,
