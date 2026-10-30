@@ -41,7 +41,7 @@ When an advisory has no patched version anywhere, suppress it in `package.json` 
 
 ## Releasing
 
-This package uses [release-please](https://github.com/googleapis/release-please) for automated versioning and changelog generation, with a separate workflow for publishing to npm.
+This package uses [release-please](https://github.com/googleapis/release-please) for automated versioning and changelog generation. The same workflow, **CD - Release** (`.github/workflows/cd-release.yml`), publishes each release to npm through [trusted publishing](https://docs.npmjs.com/trusted-publishers) (OIDC), so no npm token is involved.
 
 ### How it works
 
@@ -76,16 +76,18 @@ The release PR is the primary way to preview what will be in the next release.
 When you merge the release PR:
 
 1. Release-please creates a git tag (`vX.Y.Z`) and a GitHub Release
-2. The **CD - Publish to npm** workflow automatically triggers and publishes the package
+2. The `publish` job in the same **CD - Release** run publishes that tag to npm with provenance
 
 ### Retrying a failed publish
 
 If the publish step fails after a release is created:
 
-1. Go to **Actions → CD - Publish to npm**
-2. Click **Run workflow**
-3. Enter the git tag (e.g., `v0.2.0`)
+1. Go to **Actions → CD - Release**
+2. Click **Run workflow** and keep `main` selected (the `npm` environment only deploys from `main`)
+3. Enter the existing git tag (e.g., `v0.2.0`)
 4. Click **Run workflow**
+
+A manual run skips release-please and only publishes the tag you enter. It has to run from `cd-release.yml`: npm checks the filename of the workflow that started the run, so publishing from any other workflow file is rejected.
 
 If the failure requires a code fix (not just a CI retry):
 
@@ -125,5 +127,5 @@ The release PR accumulates all version-bumping commits since the last release. K
 These settings are required for the release workflow to function correctly:
 
 - **Squash merge**: Enable squash merging as the default merge strategy with "Default to pull request title" so PR titles become the conventional commit messages on `main`
-- **NPM_TOKEN**: Add an npm [granular access token](https://docs.npmjs.com/creating-and-viewing-access-tokens) as a repository secret named `NPM_TOKEN`, scoped to the `@common-grants` org with publish permissions
-- **GitHub Environment** (optional): Create an environment called `npm` with required reviewers to add an approval gate before publishing
+- **npm trusted publisher**: On npmjs.com, configure `@common-grants/cg-grants-gov`'s trusted publisher as GitHub Actions with repository `common-grants/ts-cg-grants-gov`, workflow filename `cd-release.yml`, and environment `npm`. npm allows one trusted publisher per package, and it must name the workflow file that runs `pnpm publish`.
+- **GitHub Environment**: The `publish` job runs in an environment called `npm`, restricted to deployments from `main`. Add required reviewers to it if you want an approval gate before publishing.
