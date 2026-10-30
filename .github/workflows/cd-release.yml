@@ -23,47 +23,34 @@ jobs:
   # When that release PR is merged, release-please creates a git tag and
   # GitHub Release, and the publish job below publishes that tag to npm.
   release-please:
+    # Only a push can cut a release. A manual dispatch skips this job, so it
+    # never gets write access, and publishes the tag it was given.
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     permissions:
       contents: write
       pull-requests: write
     outputs:
-      publish_tag: ${{ steps.plan.outputs.publish_tag }}
+      release_created: ${{ steps.release.outputs.release_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
     steps:
-      # Only a push can cut a release. A manual dispatch skips this step and
-      # publishes the tag it was given.
       - uses: googleapis/release-please-action@v4
         id: release
-        if: github.event_name == 'push'
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
-
-      - name: Select tag to publish
-        id: plan
-        env:
-          EVENT: ${{ github.event_name }}
-          DISPATCH_TAG: ${{ inputs.tag }}
-          RELEASE_CREATED: ${{ steps.release.outputs.release_created }}
-          RELEASE_TAG: ${{ steps.release.outputs.tag_name }}
-        run: |
-          if [[ "$EVENT" == "workflow_dispatch" ]]; then
-            tag="$DISPATCH_TAG"
-          elif [[ "$RELEASE_CREATED" == "true" ]]; then
-            tag="$RELEASE_TAG"
-          else
-            tag=""
-          fi
-          echo "Publishing: ${tag:-nothing}"
-          echo "publish_tag=$tag" >> "$GITHUB_OUTPUT"
 
   # Publishing lives in this workflow, not a reusable one: npm's trusted
   # publisher is bound to this workflow file plus the `npm` environment, and
   # GitHub reports the calling workflow's filename in the OIDC token.
   publish:
     needs: release-please
-    if: needs.release-please.outputs.publish_tag != ''
+    # !cancelled() lets this job run when release-please was skipped on a
+    # manual dispatch.
+    if: >-
+      !cancelled() && (github.event_name == 'workflow_dispatch' ||
+      needs.release-please.outputs.release_created == 'true')
     runs-on: ubuntu-latest
     environment:
       name: npm
@@ -72,7 +59,7 @@ jobs:
       contents: read
       id-token: write # OIDC token for npm trusted publishing
     env:
-      RELEASE_TAG: ${{ needs.release-please.outputs.publish_tag }}
+      RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || needs.release-please.outputs.tag_name }}
     steps:
       # A manual dispatch can pass any string; reject anything that is not a
       # release tag before checkout.
@@ -99,13 +86,15 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      # Builds the package
-      # TODO: Change this back to pnpm run ci after initial release
-      - run: pnpm run build
+      # Lint, types, build, tests and the package smoke test must pass before
+      # publishing. `pnpm audit` is left to the daily sweep (audit.yml) so a
+      # newly published advisory can't block a release.
+      - run: pnpm run ci:code
 
       # pnpm publish shells out to the system npm, which must be >= 11.5.1 for
-      # OIDC trusted publishing; Node 22 bundles an older npm.
-      - run: npm install -g npm@latest
+      # OIDC trusted publishing; Node 22 bundles an older npm. Pinned to the
+      # 11.x line so a new npm major can't reach this job unreviewed.
+      - run: npm install -g npm@^11.5.1
 
       - name: Publish
         run: pnpm publish --provenance --access public --no-git-checks
