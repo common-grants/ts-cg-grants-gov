@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.4.0](https://github.com/common-grants/ts-cg-grants-gov/compare/v0.3.1...v0.4.0) (2026-10-30)
+
+
+### ⚠ BREAKING CHANGES
+
+* requires @common-grants/sdk 0.7 or later and Zod 4 (zod ^4.5.0). SDK 0.6 and earlier and Zod 3 are no longer supported.
+
+### Bug Fixes
+
+* bump nanoid to 3.3.18 for GHSA-2v37-7h3g-55p8 ([#31](https://github.com/common-grants/ts-cg-grants-gov/issues/31)) ([c9d15ef](https://github.com/common-grants/ts-cg-grants-gov/commit/c9d15ef106cd664e59f6edd36438772f95ce35fe))
+* support @common-grants/sdk 0.9.0 ([#36](https://github.com/common-grants/ts-cg-grants-gov/issues/36)) ([b3976c2](https://github.com/common-grants/ts-cg-grants-gov/commit/b3976c203558e73c69111767830c9fec6e0c0a4c))
+
 ## [0.3.1](https://github.com/common-grants/ts-cg-grants-gov/compare/v0.3.0...v0.3.1) (2026-08-04)
 
 
